@@ -1,0 +1,141 @@
+﻿Column1,Campground,Origin,Province,C:Latitude,C:Longitude,O:Latitude,O:Longitude,Code,Column2
+1,North Head Campground and Park,"Edmundstun,NB",NB,44.769007,-66.742822,47.365069,-68.32868654,C1,O1
+2,Herring Cove- Provincial Park,"Edmundstun,NB",NB,44.876214,-66.935706,47.365069,-68.32868654,C2,O1
+3,Kiwanis Oceanfront CG ,"Edmundstun,NB",NB,44.769007,-64.433165,47.365069,-68.32868654,C3,O1
+4,New River Beach Provincial Park ,"Edmundstun,NB",NB,45.137120,-66.529297,47.365069,-68.32868654,C4,O1
+5,Rockwood Park-City ,"Edmundstun,NB",NB,45.291822,-66.052541,47.365069,-68.32868654,C5,O1
+6,Century Farm Family Campground,"Edmundstun,NB",NB,45.351259,-65.542993,47.365069,-68.32868654,C6,O1
+7,Coy Lake Camping,"Edmundstun,NB",NB,45.814958,-66.204777,47.365069,-68.32868654,C7,O1
+8,Heritage Country Camping,"Edmundstun,NB",NB,45.885145,-66.948858,47.365069,-68.32868654,C8,O1
+9,Great Bear Camping,"Edmundstun,NB",NB,45.939559,-67.074030,47.365069,-68.32868654,C9,O1
+10,Mactaquac Provincial Park ,"Edmundstun,NB",NB,45.953056,-66.885750,47.365069,-68.32868654,C10,O1
+11,Jellystonespark Camp-Resort,"Edmundstun,NB",NB,46.126482,-67.604745,47.365069,-68.32868654,C11,O1
+12,Murray Beach Provincial Park ,"Edmundstun,NB",NB,46.177452,-63.978926,47.365069,-68.32868654,C12,O1
+13,Camping Beausejour,"Edmundstun,NB",NB,46.207937,-64.499231,47.365069,-68.32868654,C13,O1
+14,OceanView Park,"Edmundstun,NB",NB,46.219738,-64.393751,47.365069,-68.32868654,C14,O1
+15,Parlee Beach Provincial Park ,"Edmundstun,NB",NB,46.229778,-64.503438,47.365069,-68.32868654,C15,O1
+16,KOK campgrounds ,"Edmundstun,NB",NB,46.331930,-64.530198,47.365069,-68.32868654,C16,O1
+17,Camping DT,"Edmundstun,NB",NB,46.506628,-64.681845,47.365069,-68.32868654,C17,O1
+18,Bouctouche Bay,"Edmundstun,NB",NB,46.543111,-64.705970,47.365069,-68.32868654,C18,O1
+19,Jardine Municipal Park ,"Edmundstun,NB",NB,46.665078,-64.863873,47.365069,-68.32868654,C19,O1
+20,Camping Panoramique ,"Edmundstun,NB",NB,46.687931,-71.905604,47.365069,-68.32868654,C20,O1
+21,Daigle Park ,"Edmundstun,NB",NB,46.753519,-64.994446,47.365069,-68.32868654,C21,O1
+22,Enclosure Campground,"Edmundstun,NB",NB,46.961333,-65.593602,47.365069,-68.32868654,C22,O1
+23,Paradis de la Petite Montagne,"Edmundstun,NB",NB,47.144326,-67.810151,47.365069,-68.32868654,C23,O1
+24,"Maple Leaf Motel, Campground and Restaurant","Edmundstun,NB",NB,47.207362,-67.771446,47.365069,-68.32868654,C24,O1
+25,Franquelin-Mount Carleton Provincial Park ,"Edmundstun,NB",NB,47.425847,-66.904360,47.365069,-68.32868654,C25,O1
+26,Republique Provincial Park,"Edmundstun,NB",NB,47.441044,-68.395808,47.365069,-68.32868654,C26,O1
+27,Camping Pokemouche,"Edmundstun,NB",NB,47.660284,-64.872772,47.365069,-68.32868654,C27,O1
+28,Camping Colibri sur Mer+Motel et Camping Colibri,"Edmundstun,NB",NB,47.774285,-65.019251,47.365069,-68.32868654,C28,O1
+29,Marina de Bas-Caraquet,"Edmundstun,NB",NB,47.801350,-64.871953,47.365069,-68.32868654,C29,O1
+30,Camping Murraywood Park,"Edmundstun,NB",NB,47.807356,-65.730923,47.365069,-68.32868654,C30,O1
+31,Ile Lameque Municipal Park,"Edmundstun,NB",NB,47.814319,-64.692455,47.365069,-68.32868654,C31,O1
+32,Jacquet River Village Park ,"Edmundstun,NB",NB,47.918588,-65.987500,47.365069,-68.32868654,C32,O1
+33,Cambridge Narrows,"Edmundstun,NB",NB,47.949560,-66.123076,47.365069,-68.32868654,C33,O1
+34,Blue Heron Town Park ,"Edmundstun,NB",NB,48.016475,-66.369189,47.365069,-68.32868654,C34,O1
+35,Inch Arran Park Camping,"Edmundstun,NB",NB,48.058945,-66.353337,47.365069,-68.32868654,C35,O1
+1,North Head Campground and Park,"Fredericton,NB",NB,44.769007,-66.742822,45.964653,-66.64423327,C1,O2
+2,Herring Cove- Provincial Park,"Fredericton,NB",NB,44.876214,-66.935706,45.964653,-66.64423327,C2,O2
+3,Kiwanis Oceanfront CG ,"Fredericton,NB",NB,44.769007,-64.433165,45.964653,-66.64423327,C3,O2
+4,New River Beach Provincial Park ,"Fredericton,NB",NB,45.137120,-66.529297,45.964653,-66.64423327,C4,O2
+5,Rockwood Park-City ,"Fredericton,NB",NB,45.291822,-66.052541,45.964653,-66.64423327,C5,O2
+6,Century Farm Family Campground,"Fredericton,NB",NB,45.351259,-65.542993,45.964653,-66.64423327,C6,O2
+7,Coy Lake Camping,"Fredericton,NB",NB,45.814958,-66.204777,45.964653,-66.64423327,C7,O2
+8,Heritage Country Camping,"Fredericton,NB",NB,45.885145,-66.948858,45.964653,-66.64423327,C8,O2
+9,Great Bear Camping,"Fredericton,NB",NB,45.939559,-67.074030,45.964653,-66.64423327,C9,O2
+10,Mactaquac Provincial Park ,"Fredericton,NB",NB,45.953056,-66.885750,45.964653,-66.64423327,C10,O2
+11,Jellystonespark Camp-Resort,"Fredericton,NB",NB,46.126482,-67.604745,45.964653,-66.64423327,C11,O2
+12,Murray Beach Provincial Park ,"Fredericton,NB",NB,46.177452,-63.978926,45.964653,-66.64423327,C12,O2
+13,Camping Beausejour,"Fredericton,NB",NB,46.207937,-64.499231,45.964653,-66.64423327,C13,O2
+14,OceanView Park,"Fredericton,NB",NB,46.219738,-64.393751,45.964653,-66.64423327,C14,O2
+15,Parlee Beach Provincial Park ,"Fredericton,NB",NB,46.229778,-64.503438,45.964653,-66.64423327,C15,O2
+16,KOK campgrounds ,"Fredericton,NB",NB,46.331930,-64.530198,45.964653,-66.64423327,C16,O2
+17,Camping DT,"Fredericton,NB",NB,46.506628,-64.681845,45.964653,-66.64423327,C17,O2
+18,Bouctouche Bay,"Fredericton,NB",NB,46.543111,-64.705970,45.964653,-66.64423327,C18,O2
+19,Jardine Municipal Park ,"Fredericton,NB",NB,46.665078,-64.863873,45.964653,-66.64423327,C19,O2
+20,Camping Panoramique ,"Fredericton,NB",NB,46.687931,-71.905604,45.964653,-66.64423327,C20,O2
+21,Daigle Park ,"Fredericton,NB",NB,46.753519,-64.994446,45.964653,-66.64423327,C21,O2
+22,Enclosure Campground,"Fredericton,NB",NB,46.961333,-65.593602,45.964653,-66.64423327,C22,O2
+23,Paradis de la Petite Montagne,"Fredericton,NB",NB,47.144326,-67.810151,45.964653,-66.64423327,C23,O2
+24,"Maple Leaf Motel, Campground and Restaurant","Fredericton,NB",NB,47.207362,-67.771446,45.964653,-66.64423327,C24,O2
+25,Franquelin-Mount Carleton Provincial Park ,"Fredericton,NB",NB,47.425847,-66.904360,45.964653,-66.64423327,C25,O2
+26,Republique Provincial Park,"Fredericton,NB",NB,47.441044,-68.395808,45.964653,-66.64423327,C26,O2
+27,Camping Pokemouche,"Fredericton,NB",NB,47.660284,-64.872772,45.964653,-66.64423327,C27,O2
+28,Camping Colibri sur Mer+Motel et Camping Colibri,"Fredericton,NB",NB,47.774285,-65.019251,45.964653,-66.64423327,C28,O2
+29,Marina de Bas-Caraquet,"Fredericton,NB",NB,47.801350,-64.871953,45.964653,-66.64423327,C29,O2
+30,Camping Murraywood Park,"Fredericton,NB",NB,47.807356,-65.730923,45.964653,-66.64423327,C30,O2
+31,Ile Lameque Municipal Park,"Fredericton,NB",NB,47.814319,-64.692455,45.964653,-66.64423327,C31,O2
+32,Jacquet River Village Park ,"Fredericton,NB",NB,47.918588,-65.987500,45.964653,-66.64423327,C32,O2
+33,Cambridge Narrows,"Fredericton,NB",NB,47.949560,-66.123076,45.964653,-66.64423327,C33,O2
+34,Blue Heron Town Park ,"Fredericton,NB",NB,48.016475,-66.369189,45.964653,-66.64423327,C34,O2
+35,Inch Arran Park Camping,"Fredericton,NB",NB,48.058945,-66.353337,45.964653,-66.64423327,C35,O2
+1,North Head Campground and Park,"Oromocto,NB",NB,44.769007,-66.742822,45.840497,-66.48030548,C1,O3
+2,Herring Cove- Provincial Park,"Oromocto,NB",NB,44.876214,-66.935706,45.840497,-66.48030548,C2,O3
+3,Kiwanis Oceanfront CG ,"Oromocto,NB",NB,44.769007,-64.433165,45.840497,-66.48030548,C3,O3
+4,New River Beach Provincial Park ,"Oromocto,NB",NB,45.137120,-66.529297,45.840497,-66.48030548,C4,O3
+5,Rockwood Park-City ,"Oromocto,NB",NB,45.291822,-66.052541,45.840497,-66.48030548,C5,O3
+6,Century Farm Family Campground,"Oromocto,NB",NB,45.351259,-65.542993,45.840497,-66.48030548,C6,O3
+7,Coy Lake Camping,"Oromocto,NB",NB,45.814958,-66.204777,45.840497,-66.48030548,C7,O3
+8,Heritage Country Camping,"Oromocto,NB",NB,45.885145,-66.948858,45.840497,-66.48030548,C8,O3
+9,Great Bear Camping,"Oromocto,NB",NB,45.939559,-67.074030,45.840497,-66.48030548,C9,O3
+10,Mactaquac Provincial Park ,"Oromocto,NB",NB,45.953056,-66.885750,45.840497,-66.48030548,C10,O3
+11,Jellystonespark Camp-Resort,"Oromocto,NB",NB,46.126482,-67.604745,45.840497,-66.48030548,C11,O3
+12,Murray Beach Provincial Park ,"Oromocto,NB",NB,46.177452,-63.978926,45.840497,-66.48030548,C12,O3
+13,Camping Beausejour,"Oromocto,NB",NB,46.207937,-64.499231,45.840497,-66.48030548,C13,O3
+14,OceanView Park,"Oromocto,NB",NB,46.219738,-64.393751,45.840497,-66.48030548,C14,O3
+15,Parlee Beach Provincial Park ,"Oromocto,NB",NB,46.229778,-64.503438,45.840497,-66.48030548,C15,O3
+16,KOK campgrounds ,"Oromocto,NB",NB,46.331930,-64.530198,45.840497,-66.48030548,C16,O3
+17,Camping DT,"Oromocto,NB",NB,46.506628,-64.681845,45.840497,-66.48030548,C17,O3
+18,Bouctouche Bay,"Oromocto,NB",NB,46.543111,-64.705970,45.840497,-66.48030548,C18,O3
+19,Jardine Municipal Park ,"Oromocto,NB",NB,46.665078,-64.863873,45.840497,-66.48030548,C19,O3
+20,Camping Panoramique ,"Oromocto,NB",NB,46.687931,-71.905604,45.840497,-66.48030548,C20,O3
+21,Daigle Park ,"Oromocto,NB",NB,46.753519,-64.994446,45.840497,-66.48030548,C21,O3
+22,Enclosure Campground,"Oromocto,NB",NB,46.961333,-65.593602,45.840497,-66.48030548,C22,O3
+23,Paradis de la Petite Montagne,"Oromocto,NB",NB,47.144326,-67.810151,45.840497,-66.48030548,C23,O3
+24,"Maple Leaf Motel, Campground and Restaurant","Oromocto,NB",NB,47.207362,-67.771446,45.840497,-66.48030548,C24,O3
+25,Franquelin-Mount Carleton Provincial Park ,"Oromocto,NB",NB,47.425847,-66.904360,45.840497,-66.48030548,C25,O3
+26,Republique Provincial Park,"Oromocto,NB",NB,47.441044,-68.395808,45.840497,-66.48030548,C26,O3
+27,Camping Pokemouche,"Oromocto,NB",NB,47.660284,-64.872772,45.840497,-66.48030548,C27,O3
+28,Camping Colibri sur Mer+Motel et Camping Colibri,"Oromocto,NB",NB,47.774285,-65.019251,45.840497,-66.48030548,C28,O3
+29,Marina de Bas-Caraquet,"Oromocto,NB",NB,47.801350,-64.871953,45.840497,-66.48030548,C29,O3
+30,Camping Murraywood Park,"Oromocto,NB",NB,47.807356,-65.730923,45.840497,-66.48030548,C30,O3
+31,Ile Lameque Municipal Park,"Oromocto,NB",NB,47.814319,-64.692455,45.840497,-66.48030548,C31,O3
+32,Jacquet River Village Park ,"Oromocto,NB",NB,47.918588,-65.987500,45.840497,-66.48030548,C32,O3
+33,Cambridge Narrows,"Oromocto,NB",NB,47.949560,-66.123076,45.840497,-66.48030548,C33,O3
+34,Blue Heron Town Park ,"Oromocto,NB",NB,48.016475,-66.369189,45.840497,-66.48030548,C34,O3
+35,Inch Arran Park Camping,"Oromocto,NB",NB,48.058945,-66.353337,45.840497,-66.48030548,C35,O3
+1,North Head Campground and Park,"Moncton,NB",NB,44.769007,-66.742822,46.097368,-64.76730842,C1,O4
+2,Herring Cove- Provincial Park,"Moncton,NB",NB,44.876214,-66.935706,46.097368,-64.76730842,C2,O4
+3,Kiwanis Oceanfront CG ,"Moncton,NB",NB,44.769007,-64.433165,46.097368,-64.76730842,C3,O4
+4,New River Beach Provincial Park ,"Moncton,NB",NB,45.137120,-66.529297,46.097368,-64.76730842,C4,O4
+5,Rockwood Park-City ,"Moncton,NB",NB,45.291822,-66.052541,46.097368,-64.76730842,C5,O4
+6,Century Farm Family Campground,"Moncton,NB",NB,45.351259,-65.542993,46.097368,-64.76730842,C6,O4
+7,Coy Lake Camping,"Moncton,NB",NB,45.814958,-66.204777,46.097368,-64.76730842,C7,O4
+8,Heritage Country Camping,"Moncton,NB",NB,45.885145,-66.948858,46.097368,-64.76730842,C8,O4
+9,Great Bear Camping,"Moncton,NB",NB,45.939559,-67.074030,46.097368,-64.76730842,C9,O4
+10,Mactaquac Provincial Park ,"Moncton,NB",NB,45.953056,-66.885750,46.097368,-64.76730842,C10,O4
+11,Jellystonespark Camp-Resort,"Moncton,NB",NB,46.126482,-67.604745,46.097368,-64.76730842,C11,O4
+12,Murray Beach Provincial Park ,"Moncton,NB",NB,46.177452,-63.978926,46.097368,-64.76730842,C12,O4
+13,Camping Beausejour,"Moncton,NB",NB,46.207937,-64.499231,46.097368,-64.76730842,C13,O4
+14,OceanView Park,"Moncton,NB",NB,46.219738,-64.393751,46.097368,-64.76730842,C14,O4
+15,Parlee Beach Provincial Park ,"Moncton,NB",NB,46.229778,-64.503438,46.097368,-64.76730842,C15,O4
+16,KOK campgrounds ,"Moncton,NB",NB,46.331930,-64.530198,46.097368,-64.76730842,C16,O4
+17,Camping DT,"Moncton,NB",NB,46.506628,-64.681845,46.097368,-64.76730842,C17,O4
+18,Bouctouche Bay,"Moncton,NB",NB,46.543111,-64.705970,46.097368,-64.76730842,C18,O4
+19,Jardine Municipal Park ,"Moncton,NB",NB,46.665078,-64.863873,46.097368,-64.76730842,C19,O4
+20,Camping Panoramique ,"Moncton,NB",NB,46.687931,-71.905604,46.097368,-64.76730842,C20,O4
+21,Daigle Park ,"Moncton,NB",NB,46.753519,-64.994446,46.097368,-64.76730842,C21,O4
+22,Enclosure Campground,"Moncton,NB",NB,46.961333,-65.593602,46.097368,-64.76730842,C22,O4
+23,Paradis de la Petite Montagne,"Moncton,NB",NB,47.144326,-67.810151,46.097368,-64.76730842,C23,O4
+24,"Maple Leaf Motel, Campground and Restaurant","Moncton,NB",NB,47.207362,-67.771446,46.097368,-64.76730842,C24,O4
+25,Franquelin-Mount Carleton Provincial Park ,"Moncton,NB",NB,47.425847,-66.904360,46.097368,-64.76730842,C25,O4
+26,Republique Provincial Park,"Moncton,NB",NB,47.441044,-68.395808,46.097368,-64.76730842,C26,O4
+27,Camping Pokemouche,"Moncton,NB",NB,47.660284,-64.872772,46.097368,-64.76730842,C27,O4
+28,Camping Colibri sur Mer+Motel et Camping Colibri,"Moncton,NB",NB,47.774285,-65.019251,46.097368,-64.76730842,C28,O4
+29,Marina de Bas-Caraquet,"Moncton,NB",NB,47.801350,-64.871953,46.097368,-64.76730842,C29,O4
+30,Camping Murraywood Park,"Moncton,NB",NB,47.807356,-65.730923,46.097368,-64.76730842,C30,O4
+31,Ile Lameque Municipal Park,"Moncton,NB",NB,47.814319,-64.692455,46.097368,-64.76730842,C31,O4
+32,Jacquet River Village Park ,"Moncton,NB",NB,47.918588,-65.987500,46.097368,-64.76730842,C32,O4
+33,Cambridge Narrows,"Moncton,NB",NB,47.949560,-66.123076,46.097368,-64.76730842,C33,O4
+34,Blue Heron Town Park ,"Moncton,NB",NB,48.016475,-66.369189,46.097368,-64.76730842,C34,O4
+35,Inch Arran Park Camping,"Moncton,NB",NB,48.058945,-66.353337,46.097368,-64.76730842,C35,O4
