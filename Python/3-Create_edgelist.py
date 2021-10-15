@@ -3,11 +3,13 @@
 Created on Thu Oct 14 09:58:54 2021
 
 @author: alexp
+
+Clean data and create an edgelist
 """
 
-import networkx as nx
 import pandas as pd
 import os
+
 
 os.chdir('\..')
 os.chdir("Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding/Camping_data/")
@@ -33,12 +35,8 @@ camp_df= camp_df.rename(columns={'Latitude':'camp_Lat','Longitude':'camp_Long'})
 
 Camp_df = pd.concat([camp_df]*len(city_df.index), ignore_index=True)
 
-Camp_df = pd.DataFrame(np.repeat(camp_df.values, len(city_df.index), axis=0), columns=camp_df.columns)
+City_df = pd.concat([city_df]*len(camp_df.index), ignore_index=True).sort_values(by=['index1']).reset_index()
 
-City_df= pd.DataFrame(np.repeat(city_df.values, len(camp_df.index), axis=0), columns=city_df.columns)
+Edgelist_df = Camp_df.join(City_df[['Geographic_Name','Population','city_Lat','city_Long']]) 
 
-
-
-#Edgelist_df= pd.concat([City_df, Camp_df])
-
-
+Edgelist_df.to_csv('Edgelist.csv')
