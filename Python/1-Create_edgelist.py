@@ -14,7 +14,7 @@ import os
 os.chdir('\..')
 os.chdir("Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding/Camping_data/")
 
-camp_df = pd.read_csv('Parks_and_camping_Master_2021-10-13.csv')
+camp_df = pd.read_csv('Parks_and_camping_Master_2021-10-27.csv')
 city_df = pd.read_csv('Cities_Master_2021-10-12.csv')
 
 city_df = city_df.rename(columns={'Latitude':'city_Lat','Longitude':'city_Long','Province':'City_prov'})
