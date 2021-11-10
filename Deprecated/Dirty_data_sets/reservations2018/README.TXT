@@ -1,1 +1,0 @@
-Due to the transition between Rec.gov vendors the FY 2018 historical reservation data has not been fully verified for accuracy and completeness.

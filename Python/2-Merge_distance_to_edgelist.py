@@ -14,4 +14,4 @@ camp_df=pd.read_csv('Coding/Camping_data/edgelist.csv')
 
 camp_df = camp_df.rename(columns={'Unnamed: 0':'ID'})
 
-pd.merge(dist_df, camp_df, on='Name')
+pd.concat(dist_df, on='Name')
