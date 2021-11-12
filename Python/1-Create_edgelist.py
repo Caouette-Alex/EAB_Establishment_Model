@@ -51,4 +51,4 @@ Edgelist_df= Edgelist_citytocamp_df.append(Edgelist_citytocity_df)
 Edgelist_citytocamp_df.to_csv('Edgelist_citytocamp.csv')
 Edgelist_citytocity_df.to_csv('Edgelist_citytocity.csv')
 
-Edgelist_df.to_csv('Edgelist.csv')
+Edgelist_df.to_csv('Edgelist_nodistance.csv')
