@@ -4,7 +4,7 @@ Created on Wed Oct 27 17:41:20 2021
 
 @author: alexp
 """
-
+import numpy as np
 import pandas as pd
 import os
 
@@ -21,7 +21,7 @@ dist_camp_df['Distance_Km'] = dist_camp_df['Distance_Km']/1000
 #Open edgelist of city to campground locations
 camp_df = pd.read_csv('Edgelist_citytocamp.csv').rename(columns={'Unnamed: 0':'ID'})
 #Merge dataframes to a single edgelist dataframe including the population size,number campsites, distance, etc..
-camp_edgelist = camp_df.merge(dist_camp_df, left_on='ID', right_on='Name')
+camp_edgelist = camp_df.merge(dist_camp_df, left_on='ID', right_on='Name').dropna(subset=['Sites'])
 #%%
 
 #Create dataframe of City to city distance data pulled from Arcmap
@@ -32,8 +32,11 @@ dist_city_df['Distance_Km'] = dist_city_df['Distance_Km']/1000
 #Open edgelist of city to campground locations
 city_df = pd.read_csv('Edgelist_citytocity.csv').rename(columns={'Unnamed: 0':'ID'})
 #Merge dataframes to a single edgelist dataframe including the population size,number campsites, distance, etc..
-city_edgelist = city_df.merge(dist_city_df, left_on='ID', right_on='Name')
+city_edgelist = city_df.merge(dist_city_df, left_on='ID', right_on='Name') 
+city_edgelist['Distance_Km'] = city_edgelist['Distance_Km'].replace(0, np.nan)
+city_edgelist = city_edgelist.dropna(subset=['Distance_Km'])
 #%%
 Edgelist_df= camp_edgelist.append(city_edgelist)
+
 
 Edgelist_df.to_csv('Edgelist.csv')
