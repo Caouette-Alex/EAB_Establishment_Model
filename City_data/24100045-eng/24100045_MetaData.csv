@@ -1,0 +1,58 @@
+﻿"Cube Title","Product Id","CANSIM Id",URL,"Cube Notes","Archive Status",Frequency,"Start Reference Period","End Reference Period","Total number of dimensions"
+"Travel by Canadian residents in Canada and abroad by trip purpose","24100045",,"https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=2410004501",1;4;5;6,"CURRENT - a cube available to the public and that is current","Quarterly","2018-01-01","2021-01-01","4",
+
+"Dimension ID","Dimension name","Dimension Notes","Dimension Definitions"
+"1","Geography, country or region of trip destination",,""
+"2","Trip duration",,""
+"3","Main trip purpose",,""
+"4","Statistics",,""
+
+"Dimension ID","Member Name","Classification Code","Member ID","Parent Member ID",Terminated,"Member Notes","Member Definitions"
+"1","Total, all countries and regions","","1","","",,
+"1","Canada",[11124],"2","1","",,
+"1","United States","","3","1","",2,
+"1","Overseas","","4","1","",2;3,
+"2","Total, all trip durations","","1","","",,
+"2","Same-day","","2","1","",,
+"2","Overnight","","3","1","",,
+"3","Total, all trip purposes","","1","","",,
+"3","Holiday, leisure or recreation","","2","1","",,
+"3","Visit friends or relatives","","3","1","",,
+"3","Personal conference, convention or trade show","","4","1","",,
+"3","Shopping, non-routine","","5","1","",,
+"3","Other personal reasons","","6","1","",,
+"3","Business conference, convention or trade show","","7","1","",,
+"3","Other business","","8","1","",,
+"4","Number of trips","","1","","",,
+
+Symbol Legend
+Description,Symbol
+"not available for a specific reference period","..",
+"less than the limit of detection","<LOD",
+"value rounded to 0 (zero) where there is a meaningful distinction between true zero and the value that was rounded","0s",
+"data quality: excellent","A",
+"data quality: very good","B",
+"data quality: good","C",
+"data quality: acceptable","D",
+"use with caution","E",
+"too unreliable to be published","F",
+"not applicable","...",
+"preliminary","p",
+"revised","r",
+"suppressed to meet the confidentiality requirements of the Statistics Act","x",
+"terminated","t",
+
+"Survey Code","Survey Name"
+"5232","National Travel Survey"
+
+"Subject Code","Subject Name"
+"24","Travel and tourism"
+
+"Note ID",Note
+1,"Estimates contained in this table have been assigned a letter to indicate their coefficient of variation (c.v.) (expressed as a percentage). The letter grades represent the following coefficients of variation: A is used for a c.v. between or equal to 0.00% and 5.00% and means Excellent, B is used for a c.v. between or equal to 5.01% and 15.00% and means Very good, C is used for a c.v. between or equal to 15.01% and 25.00% and means Good, D is used for a c.v. between or equal to 25.01% and 35.00% and means Acceptable, E is used for a c.v. greater than 35.00% and means Use with caution."
+4,"A Person-trip represents a trip taken by one person. A trip has one origin and one destination and it can include one or more visits, with the number of visits always equal to or greater than the number of trips."
+5,"Other tables will be available at a later date."
+6,"Preliminary data for the first quarter of 2020 represent only January and February 2020."
+2,"Trips with a destination outside of Canada or at least one night spent outside of Canada made by residents of Canada 18 years of age or older."
+3,"Overseas countries are countries other than the United States."
+

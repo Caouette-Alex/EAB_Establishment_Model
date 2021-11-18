@@ -1,0 +1,50 @@
+﻿"Cube Title","Product Id","CANSIM Id",URL,"Cube Notes","Archive Status",Frequency,"Start Reference Period","End Reference Period","Total number of dimensions"
+"Canadian vehicle survey, passenger-kilometres for vehicles up to 4.5 tonnes, by origin and destination of trip, quarterly",23100192,405-0103,"https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=2310019201",1,"ARCHIVED -  a cube publicly available but no longer being updated",Quarterly,2004-01-01,2009-10-01,3
+
+"Dimension ID","Dimension name","Dimension Notes","Dimension Correction Notes","Dimension Definitions"
+1,Geography,,,
+2,"Origin of trip",,,
+3,"Destination of trip",,,
+
+"Dimension ID","Member Name","Classification Code","Member ID","Parent Member ID",Terminated,"Member Notes","Member Correction Notes","Member Geo Attribute Keys","Member Definitions"
+1,"Canada excluding Territories",,1,,,,,,
+2,"From driver's home",,1,,,,,,
+2,"From driver's regular workplace",,2,,,,,,
+2,"From shopping centre or bank or other place of personal business",,3,,,,,,
+2,"From leisure or entertainment or recreational facility or restaurant",,4,,,,,,
+2,"From other origin",,5,,,,,,
+3,"To driver's home",,1,,,,,,
+3,"To driver's regular workplace",,2,,,,,,
+3,"To shopping centre or bank or other place of personal business",,3,,,,,,
+3,"To leisure or entertainment or recreational facility or restaurant",,4,,,,,,
+3,"To other destination",,5,,,,,,
+
+Symbol Legend
+Description,Symbol
+"not available for a specific reference period",..
+"less than the limit of detection",<LOD
+"value rounded to 0 (zero) where there is a meaningful distinction between true zero and the value that was rounded",0s
+"data quality: excellent",A
+"data quality: very good",B
+"data quality: good",C
+"data quality: acceptable",D
+"use with caution",E
+"too unreliable to be published",F
+"not applicable",...
+preliminary,p
+revised,r
+"suppressed to meet the confidentiality requirements of the Statistics Act",x
+terminated,t
+
+"Survey Code","Survey Name"
+2749,"Fuel Consumption Survey"
+
+"Subject Code","Subject Name"
+23,Transportation
+
+"Note ID",Note
+1,"The estimates contained in this table have been assigned a letter to indicate their coefficient of variation (c.v.) (expressed as a percentage). The letter grades represent the following coefficients of variation: A is used for a c.v. between 0.00% and 4.99% and means Excellent, B is used for a c.v. between 5.00% and 9.99% and means Very good, C is used for a c.v. between 10.00% and 14.99% and means Good, D is used for a c.v. between 15.00% and 19.99% and means Acceptable, E is used for a c.v. between 20.00% and 34.99% and means Use with caution. F replaces the data when the c.v. is equal to or greater than 35.00% and means Too unreliable to be published."
+
+"Correction ID","Correction Date","Correction Note"
+
+
