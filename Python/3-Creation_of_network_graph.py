@@ -78,8 +78,8 @@ def state_transition(G, current_state):
                         X_i=G.nodes[neighbor]['Sites']
                         D_ij=G.edges[neighbor,node]['Distance_Km']
                         
-                        #Calculate pull value and normalize data using the total in-degree of nodes and load them into a dictionary of dictionary
-                        #dict : origin_degree = {Origin(node):{Campground(neighbor): normalized_pull}}
+                        #Calculate attractance value(Pull) load them into a dictionary of dictionary for each infected node
+                        #dict : origin_degree = {Origin(node):{Campground(neighbor): attractance}
                         pull = (X_i/D_ij)
                         pull_list.append(pull)
                         node_degree_camp[neighbor]=pull
@@ -117,7 +117,7 @@ def state_transition(G, current_state):
             for node,count in d.items():
                 if count >1: 
                     next_state[node] = 'I'
-    
+                    
     return next_state
 #%%
 current_state = (initial_state(G))
@@ -144,13 +144,15 @@ nx.draw(G,pos=nx.get_node_attributes(G, 'pos'),node_size=8,node_color='green', w
 #Sim = Simulation(G, States.initial_state, States.state_transition, name='SIS-model')
 Sim = Simulation(G, initial_state, state_transition, name='test')
 #%%
-for i in range(20):#1000 repeats
+import numpy as np
+import matplotlib.pyplot as plt
+
+for i in range(50):#1000 repeats
     Sim = Simulation(G, initial_state, state_transition, name='test')
     Sim.run(5)
-    print(Sim.draw())
-
-Sim.draw()
-
+    Sim.draw()
+    plt.show()
+    
 Sim.state()
 #%% Test Variables
-Sim.state()
+Sim.draw()
