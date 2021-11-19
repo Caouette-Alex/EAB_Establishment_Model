@@ -61,7 +61,7 @@ class Simulation:
 
         self._initialize()
 
-        self._pos = nx.layout.spring_layout(G)
+        self._pos = nx.get_node_attributes(G, 'pos')
 
     def _append_state(self, state):
         self._states.append(state)
@@ -139,8 +139,7 @@ class Simulation:
         '''
         state = self.state(step)
         node_colors = [self._categorical_color(state[n]) for n in self.G.nodes]
-        nx.draw(self.G, pos=self._pos, node_color=node_colors, **kwargs)
-
+        nx.draw(self.G, pos=nx.get_node_attributes(self.G, 'pos'), node_color=node_colors, node_size=8, width=0.05, **kwargs)
         if labels is None:
             labels = sorted(set(state.values()), key=self._value_index.get)
         patches = [mpl.patches.Patch(color=self._categorical_color(l), label=l)
