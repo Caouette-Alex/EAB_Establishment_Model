@@ -52,7 +52,7 @@ def state_transition(G, current_state):
     #Per capita value is a source of number of reservations taken from a national system 
     per_capita_value=0.0047
     #Firewood source(outside park:0.25, from home:0.17,cut of collected from another area:0.14)Jacobi et al. 2011, and and incident that wood has live insects in it (percent wood fraxinus:0.1455, percent with live borers:0.34)  Haack et al. 2010
-    prob_infested_wood=(0.25+0.17+0.14)*(0.23)
+    prob_infested_wood=(0.25+0.17+0.14)*(0.1455*0.34)
     #Iterate through each node splitting the two by infected and uninfected nodes 
     for node in G.nodes:
         #if the node is infected, print the number of campers leaving the campground with infested wood/year(per capita value) is calculated, and calculate the total campground pull value from all campgrounds(in degree)
@@ -120,9 +120,6 @@ def state_transition(G, current_state):
                     
     return next_state
 #%%
-current_state = (initial_state(G))
-print(state_transition(G, current_state))
-#%%
 G = nx.from_pandas_edgelist(edgelist_df,source='Orig_name',target='Dest_name',edge_attr=['Distance_Km'])
 
 #add coordinates for each node by first creating key value group of {Dest name: Long, lat}
@@ -133,6 +130,28 @@ nx.set_node_attributes(G, dict_pos, 'pos')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Orig_name'],edgelist_df['Orig_pop'])),'Population')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['Sites'])),'Sites')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['type'])),'Type')
+#%%
+import numpy as np
+import matplotlib.pyplot as plt
+import time
+
+import time
+start = time.process_time()
+# your code here    
+print(time.process_time() - start)
+for i in range(2):#1000 repeats
+    Sim = Simulation(G, initial_state, state_transition, name='test')
+    Sim.run(2)
+    Sim.draw()
+    plt.show()
+    Sim.plot()
+    plt.show()
+       
+print(time.process_time() - start)
+#%%
+current_state = (initial_state(G))
+print(state_transition(G, current_state))
+
 
 #%%
 
@@ -143,16 +162,6 @@ nx.draw(G,pos=nx.get_node_attributes(G, 'pos'),node_size=8,node_color='green', w
 #%%
 #Sim = Simulation(G, States.initial_state, States.state_transition, name='SIS-model')
 Sim = Simulation(G, initial_state, state_transition, name='test')
-#%%
-import numpy as np
-import matplotlib.pyplot as plt
 
-for i in range(50):#1000 repeats
-    Sim = Simulation(G, initial_state, state_transition, name='test')
-    Sim.run(5)
-    Sim.draw()
-    plt.show()
-    
-Sim.state()
 #%% Test Variables
 Sim.draw()
