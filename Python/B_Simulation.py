@@ -17,6 +17,7 @@ class StopCondition(StopIteration):
 
 class Simulation:
     '''Simulate state transitions on a network'''
+    invasion_step={}
 
     def __init__(self, G, initial_state, state_transition,
             stop_condition=None, name=''):
@@ -54,11 +55,11 @@ class Simulation:
         if stop_condition and not callable(stop_condition):
             raise TypeError("'stop_condition' should be a function")
         self.name = name or 'Simulation'
-
+        
         self._states = []
         self._value_index = {}
         self._cmap = plt.cm.get_cmap('tab10')
-
+        self._time_invas = {}
         self._initialize()
 
         self._pos = nx.get_node_attributes(G, 'pos')
@@ -84,6 +85,7 @@ class Simulation:
         self._append_state(state)
 
     def _step(self):
+        invasion_step={}
         # We're choosing to use the node attributes as the source of truth.
         # This allows the user to manually perturb the network in between steps.
         state = nx.get_node_attributes(self.G, 'state')
@@ -91,6 +93,12 @@ class Simulation:
             raise StopCondition
         state = nx.get_node_attributes(self.G, 'state')
         new_state = self._state_transition(self.G, state)
+        
+        for k, v in new_state.items():
+           if k not in self._time_invas:
+              self._time_invas[k] = len(self._states)
+
+        
         state.update(new_state)
         nx.set_node_attributes(self.G, state, 'state')
         self._append_state(state)
@@ -210,4 +218,5 @@ class Simulation:
                     "Stop condition met at step %i." % self.steps
                     )
                 break
-
+    def invasion_time(self):
+        print(self._time_invas)

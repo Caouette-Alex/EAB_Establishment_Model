@@ -119,49 +119,46 @@ def state_transition(G, current_state):
                     next_state[node] = 'I'
                     
     return next_state
-#%%
+#%% Create Graph from pandas edgelist and insert node and edge attributes
 G = nx.from_pandas_edgelist(edgelist_df,source='Orig_name',target='Dest_name',edge_attr=['Distance_Km'])
 
 #add coordinates for each node by first creating key value group of {Dest name: Long, lat}
 dict_pos=dict(zip(edgelist_df.Dest_name,list(zip(edgelist_df.Dest_long,edgelist_df.Dest_lat))))
 dict_pos.update(dict(zip(edgelist_df.Orig_name,list(zip(edgelist_df.Orig_long,edgelist_df.Orig_lat)))))
 nx.set_node_attributes(G, dict_pos, 'pos')
-
+#Adding node attributes to origin locations and destination locations including the site population, number of campsites, and type of edge relationship(city-city vs. city-camp)
 nx.set_node_attributes(G, dict(zip(edgelist_df['Orig_name'],edgelist_df['Orig_pop'])),'Population')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['Sites'])),'Sites')
-nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['type'])),'Type')
-#%%
+nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['type'])),'Type')# might need to change this to an edge attribute
+#%% Run simulations 
 import numpy as np
 import matplotlib.pyplot as plt
 import time
 
 import time
 start = time.process_time()
-# your code here    
-print(time.process_time() - start)
-for i in range(2):#1000 repeats
-    Sim = Simulation(G, initial_state, state_transition, name='test')
-    Sim.run(2)
+#run the number of interations that you want to run range= the number wanted
+for i in range(1000):#1000 repeats
+    #Define the class and the variables inital state and state transition are described above as 
+    Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
+    #run the simulation
+    Sim.run(20)
+    #Draw the network at each interval of nth steps()
     Sim.draw()
     plt.show()
+    #Draw the proportions of infested nodes vs. susceptible nodes from time 0 to nth steps()
     Sim.plot()
     plt.show()
+    #Show the time to invasion for each city
+    Sim.invasion_time()
        
 print(time.process_time() - start)
-#%%
-current_state = (initial_state(G))
-print(state_transition(G, current_state))
+#%%Test the initial state and state transition functions without running the simulation
+#current_state = (initial_state(G))
+#print(state_transition(G, current_state))
 
-
-#%%
-
-#dict_pos=dict(zip(edgelist_df.Dest_name,list(zip(edgelist_df.Dest_long,edgelist_df.Dest_lat))))
-#dict_pos.update(dict(zip(edgelist_df.Orig_name,list(zip(edgelist_df.Orig_long,edgelist_df.Orig_lat)))))
+#%% Draw the graph with node lat and long without running the simulation
+import mplleaflet
 nx.draw(G,pos=nx.get_node_attributes(G, 'pos'),node_size=8,node_color='green', width=0.05)
-
-#%%
-#Sim = Simulation(G, States.initial_state, States.state_transition, name='SIS-model')
-Sim = Simulation(G, initial_state, state_transition, name='test')
-
+mplleaflet.display(fig=ax.figure)
 #%% Test Variables
-Sim.draw()
