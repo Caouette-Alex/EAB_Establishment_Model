@@ -158,7 +158,35 @@ print(time.process_time() - start)
 #print(state_transition(G, current_state))
 
 #%% Draw the graph with node lat and long without running the simulation
-import mplleaflet
-nx.draw(G,pos=nx.get_node_attributes(G, 'pos'),node_size=8,node_color='green', width=0.05)
-mplleaflet.display(fig=ax.figure)
+from mpl_toolkits.basemap import Basemap
+import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
+import numpy as np
+#add
+fig     = plt.figure()
+ax      = fig.add_subplot(111)
+#Create the outer edges of the image
+map = Basemap(llcrnrlon=-68.6,llcrnrlat=43.42,urcrnrlon=-59.68,urcrnrlat=48.07,resolution='l', ellps='WGS84',lat_0=-64.37, lon_0=45.73)
+# Get shapegfile data and colour it by provincs
+map.readshapefile("maritime_prov1", "states")
+patches   = []
+for info, shape in zip(map.states_info, map.states):
+    if info['Name_EN'] == 'New Brunswick' or 'Nova Scotia' or 'Prince Edward Island' :
+        patches.append( Polygon(np.array(shape), True) )
+ax.add_collection(PatchCollection(patches, facecolor= 'coral', edgecolor='k', linewidths=1., zorder=0))
+
+# add other boundaries and colour in water as blue and other states as grey
+map.drawmapboundary(fill_color='paleturquoise',zorder=-2)
+map.drawstates(linewidth=0.2)
+map.fillcontinents(color='gray',zorder=-1)
+map.drawcoastlines()
+
+#draw the network graph
+nx.draw_networkx(G,pos=nx.get_node_attributes(G, 'pos'), with_labels=False,node_size=8,node_color='green', width=0.05)
+
+plt.show()
+
+
+
 #%% Test Variables
