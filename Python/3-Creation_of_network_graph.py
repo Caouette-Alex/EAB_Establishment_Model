@@ -58,11 +58,11 @@ def state_transition(G, current_state):
         #if the node is infected, print the number of campers leaving the campground with infested wood/year(per capita value) is calculated, and calculate the total campground pull value from all campgrounds(in degree)
         if current_state[node] == 'I':
             if G.nodes[node]['Type'] == 'city_to_city':
-                #number of infected campers from Origins
+                #number of infected campers from Origin location
                 nx.set_node_attributes(G,{node:G.nodes[node]['Population']*(per_capita_value*prob_infested_wood)},'Infected_camper')
                 Inf_camper = nx.get_node_attributes(G,'Infected_camper')
                 
-                #Get total campground pull from all neighbour nodes
+                #Get total campground attractance from all neighbour nodes
                 degree[node]= G.degree(node, weight='Campground_pull')
                 nx.set_node_attributes(G, degree,'in_degree')
                 num_inf_camper[node]=int(G.nodes[node]['Infected_camper'])
@@ -135,10 +135,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-import time
+
 start = time.process_time()
 #run the number of interations that you want to run range= the number wanted
-for i in range(1000):#1000 repeats
+invas_time = pd.DataFrame(index=G.nodes)
+for i in range(10):#1000 repeats
     #Define the class and the variables inital state and state transition are described above as 
     Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
     #run the simulation
@@ -151,6 +152,8 @@ for i in range(1000):#1000 repeats
     plt.show()
     #Show the time to invasion for each city
     Sim.invasion_time()
+    invas_time[i+1]= invas_time.index.map(Sim._time_invas)
+invas_time = invas_time.fillna(0)
        
 print(time.process_time() - start)
 #%%Test the initial state and state transition functions without running the simulation

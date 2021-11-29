@@ -47,6 +47,8 @@ class Simulation:
         Raises:
             ValueError: if not all graph nodes have an initial state.
         '''
+        
+        
         self.G = G.copy()
         self._initial_state = initial_state
         self._state_transition = state_transition
@@ -55,12 +57,16 @@ class Simulation:
         if stop_condition and not callable(stop_condition):
             raise TypeError("'stop_condition' should be a function")
         self.name = name or 'Simulation'
-        
+         
         self._states = []
         self._value_index = {}
-        self._cmap = plt.cm.get_cmap('tab10')
+        from matplotlib.colors import LinearSegmentedColormap
+        #choose the colours for the colour map
+        cmap = LinearSegmentedColormap.from_list('my_list',['#2ca02c','#d62728','#9467bd'] , N=3)
+        self._cmap = plt.cm.get_cmap(cmap)
         self._time_invas = {}
         self._initialize()
+        #self._intro_time = pd.DataFrame(index=self.G)
 
         self._pos = nx.get_node_attributes(G, 'pos')
 
@@ -145,6 +151,38 @@ class Simulation:
         Raises:
             IndexError: if `step` argument is greater than the number of steps.
         '''
+        from mpl_toolkits.basemap import Basemap
+        import matplotlib.pyplot as plt
+        from matplotlib.patches import Polygon
+        from matplotlib.collections import PatchCollection
+        import numpy as np
+        import os
+        
+        os.chdir('\..')
+        os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding')
+        
+        #add
+       
+        fig     = plt.figure()
+        ax      = fig.add_subplot(111)
+        plt.rcParams['figure.dpi'] = 300
+        #Create the outer edges of the image
+        map = Basemap(llcrnrlon=-68.6,llcrnrlat=43.42,urcrnrlon=-59.68,urcrnrlat=48.07,resolution='l', ellps='WGS84',lat_0=-64.37, lon_0=45.73)
+        # Get shapegfile data and colour it by provincs
+        map.readshapefile("maritime_prov1", "states")
+        patches   = []
+        
+        for info, shape in zip(map.states_info, map.states):
+            if info['Name_EN'] == 'New Brunswick' or 'Nova Scotia' or 'Prince Edward Island' :
+                patches.append( Polygon(np.array(shape), True) )
+        ax.add_collection(PatchCollection(patches, facecolor= 'coral', edgecolor='k', linewidths=1., zorder=0))
+        
+         # add other boundaries and colour in water as blue and other states as grey
+        map.drawmapboundary(fill_color='paleturquoise',zorder=-2)
+        map.drawstates(linewidth=0.2)
+        map.fillcontinents(color='gray',zorder=-1)
+        map.drawcoastlines()   
+    
         state = self.state(step)
         node_colors = [self._categorical_color(state[n]) for n in self.G.nodes]
         nx.draw(self.G, pos=nx.get_node_attributes(self.G, 'pos'), node_color=node_colors, node_size=8, width=0.05, **kwargs)
@@ -163,7 +201,8 @@ class Simulation:
         if self.name:
             title = '{}: {}'.format(self.name, title)
         plt.title(title)
-
+        
+        plt.show()
     def plot(self, min_step=None, max_step=None, labels=None, **kwargs):
         '''
         Use pyplot to plot the relative number of nodes with each state at each
