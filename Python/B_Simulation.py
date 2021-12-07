@@ -62,7 +62,7 @@ class Simulation:
         self._value_index = {}
         from matplotlib.colors import LinearSegmentedColormap
         #choose the colours for the colour map
-        cmap = LinearSegmentedColormap.from_list('my_list',['#2ca02c','#d62728','#9467bd'] , N=3)
+        cmap = LinearSegmentedColormap.from_list('my_list',['#2ca02c','#d62728'] , N=2)
         self._cmap = plt.cm.get_cmap(cmap)
         self._time_invas = {}
         self._initialize()
@@ -100,6 +100,7 @@ class Simulation:
         state = nx.get_node_attributes(self.G, 'state')
         new_state = self._state_transition(self.G, state)
         
+        # TODO Add an explanation for this
         for k, v in new_state.items():
            if k not in self._time_invas:
               self._time_invas[k] = len(self._states)
@@ -161,10 +162,19 @@ class Simulation:
         os.chdir('\..')
         os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding')
         
-        #add
+        city_nodes = [n
+            for (n, ty) in \
+                nx.get_node_attributes(self.G, 'Type').items() if ty == 'city_to_city']
+
+        camp_nodes = [n  
+            for (n, ty) in \
+                nx.get_node_attributes(self.G, 'Type').items() if ty == 'city_to_camp']
+        
+        #TODO add written descriptions of these 
        
         fig     = plt.figure()
         ax      = fig.add_subplot(111)
+        
         plt.rcParams['figure.dpi'] = 300
         #Create the outer edges of the image
         map = Basemap(llcrnrlon=-68.6,llcrnrlat=43.42,urcrnrlon=-59.68,urcrnrlat=48.07,resolution='l', ellps='WGS84',lat_0=-64.37, lon_0=45.73)
@@ -184,8 +194,10 @@ class Simulation:
         map.drawcoastlines()   
     
         state = self.state(step)
+      
         node_colors = [self._categorical_color(state[n]) for n in self.G.nodes]
         nx.draw(self.G, pos=nx.get_node_attributes(self.G, 'pos'), node_color=node_colors, node_size=8, width=0.05, **kwargs)
+        
         if labels is None:
             labels = sorted(set(state.values()), key=self._value_index.get)
         patches = [mpl.patches.Patch(color=self._categorical_color(l), label=l)

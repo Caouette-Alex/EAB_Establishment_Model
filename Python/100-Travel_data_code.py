@@ -7,6 +7,11 @@ Created on Wed Nov 24 14:19:07 2021
 
 import pandas as pd
 
+import os
+
+os.chdir('\..')
+os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies')
+
 df = pd.read_spss('EAB_Model/Data_Collection/TRSC_2017.sav')
 
 

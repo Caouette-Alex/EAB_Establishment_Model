@@ -36,6 +36,7 @@ city_edgelist = city_df.merge(dist_city_df, left_on='ID', right_on='Name')
 city_edgelist['Distance_Km'] = city_edgelist['Distance_Km'].replace(0, np.nan)
 city_edgelist = city_edgelist.dropna(subset=['Distance_Km'])
 #%%
+#fill all empty 
 Edgelist_df= camp_edgelist.append(city_edgelist).fillna(-1)
 
 Edgelist_df.to_csv('Edgelist.csv')

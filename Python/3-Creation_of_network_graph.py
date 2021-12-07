@@ -130,6 +130,8 @@ nx.set_node_attributes(G, dict_pos, 'pos')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Orig_name'],edgelist_df['Orig_pop'])),'Population')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['Sites'])),'Sites')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['type'])),'Type')# might need to change this to an edge attribute
+# TODO 
+
 #%% Run simulations 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -138,12 +140,14 @@ import time
 
 start = time.process_time()
 #run the number of interations that you want to run range= the number wanted
-invas_time = pd.DataFrame(index=G.nodes)
-for i in range(10):#1000 repeats
+invas_time = pd.DataFrame(columns=G.nodes)
+num_of_sims = 10
+for i in range(num_of_sims):#1000 repeats
+    print('Completed', i, 'Simulations out of', num_of_sims)
     #Define the class and the variables inital state and state transition are described above as 
     Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
     #run the simulation
-    Sim.run(20)
+    Sim.run(50)
     #Draw the network at each interval of nth steps()
     Sim.draw()
     plt.show()
@@ -152,23 +156,50 @@ for i in range(10):#1000 repeats
     plt.show()
     #Show the time to invasion for each city
     Sim.invasion_time()
-    invas_time[i+1]= invas_time.index.map(Sim._time_invas)
+    # TODO Append each simulation time to invasion as a row in a dataframe
+    invas_time = invas_time.append(Sim._time_invas, ignore_index=True)
 invas_time = invas_time.fillna(0)
-       
+Sum_stat_df = invas_time.describe() 
+
+#save data to CSV file using the following format Sim_YYYY_MM_DD_####(number of simulations)
+from datetime import datetime
+os.chdir('\..')
+os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
+filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)
+invas_time.to_csv(filename)
 print(time.process_time() - start)
 #%%Test the initial state and state transition functions without running the simulation
 #current_state = (initial_state(G))
 #print(state_transition(G, current_state))
 
+from datetime import datetime
+filename = 'Sim_'+datetime.today().strftime('%Y-%m-%d')+'_1000'
+invas_time.to_csv(filename)
 #%% Draw the graph with node lat and long without running the simulation
+
+os.chdir('\..')
+os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding')
+
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 import numpy as np
 #add
+pos=nx.get_node_attributes(G, 'pos')
 fig     = plt.figure()
 ax      = fig.add_subplot(111)
+
+city_nodes = [n
+   for (n, ty) in \
+      nx.get_node_attributes(G, 'Type').items() if ty == 'city_to_city']
+
+camp_nodes = [n  
+    for (n, ty) in \
+      nx.get_node_attributes(G, 'Type').items() if ty == 'city_to_camp']
+
+
+plt.rcParams['figure.dpi'] = 300
 #Create the outer edges of the image
 map = Basemap(llcrnrlon=-68.6,llcrnrlat=43.42,urcrnrlon=-59.68,urcrnrlat=48.07,resolution='l', ellps='WGS84',lat_0=-64.37, lon_0=45.73)
 # Get shapegfile data and colour it by provincs
@@ -186,7 +217,17 @@ map.fillcontinents(color='gray',zorder=-1)
 map.drawcoastlines()
 
 #draw the network graph
-nx.draw_networkx(G,pos=nx.get_node_attributes(G, 'pos'), with_labels=False,node_size=8,node_color='green', width=0.05)
+#nx.draw_networkx(G,pos=nx.get_node_attributes(G, 'pos'), with_labels=True,font_size=1,node_size=8,node_color='green', width=0.05)
+nx.draw_networkx_edges(G, pos,width=0.05 )
+nx.draw_networkx_nodes(G, pos, nodelist = city_nodes, node_shape = '^', node_size=8,node_color='green')
+nx.draw_networkx_nodes(G, pos, nodelist = camp_nodes, node_shape = 'o', node_size=8,node_color='green')
+
+#pos = nx.get_node_attributes(self.G, 'pos')
+#city_pos = nx.get_node_attributes([x for x,y in self.G.nodes(data=True) if y['Type'] == 'city_to_city'], 'pos')
+#camp_pos = nx.get_node_attributes(self.G, 'pos')
+#nx.draw_networkx_edges(self.G, pos,width=0.05 )
+#nx.draw_networkx_nodes(self.G, city_pos, nodelist = city_nodes, node_shape = 's', node_size=8, node_color = node_colors)
+#nx.draw_networkx_nodes(self.G, pos, nodelist = camp_nodes, node_shape = 'o', node_size=8, node_color = node_colors)
 
 plt.show()
 
