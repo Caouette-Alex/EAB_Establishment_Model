@@ -130,6 +130,7 @@ nx.set_node_attributes(G, dict_pos, 'pos')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Orig_name'],edgelist_df['Orig_pop'])),'Population')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['Sites'])),'Sites')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['type'])),'Type')# might need to change this to an edge attribute
+
 # TODO 
 
 #%% Run simulations 
@@ -173,7 +174,7 @@ print(time.process_time() - start)
 #print(state_transition(G, current_state))
 
 from datetime import datetime
-filename = 'Sim_'+datetime.today().strftime('%Y-%m-%d')+'_1000'
+filename = 'Sim_'+datetime.today().strftime('%Y-%m-%d')+num_of_sims
 invas_time.to_csv(filename)
 #%% Draw the graph with node lat and long without running the simulation
 
