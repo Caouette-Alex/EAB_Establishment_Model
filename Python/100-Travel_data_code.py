@@ -20,10 +20,10 @@ import pandas as pd
 import os
 
 os.chdir('\..')
-os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies')
+os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model')
 
 #Read the full TSRC data set from 2017
-df = pd.read_spss('EAB_Model/Data_Collection/TRSC_2017.sav')
+df = pd.read_spss('Data_collection/TRSC_2017.sav')
 
 
 #print(df.dtypes.head(15))
@@ -69,7 +69,7 @@ Orig_mrtm_df= Orig_mrtm_df[Orig_mrtm_df['tmdtype2'].isin(['Car or truck','Camper
 #Keep only columns that contain the trip month, ID, Type(overnight or sameday)
 Orig_mrtm_df= Orig_mrtm_df[['refmonth', 'tripid', 'triptype', 'orcprovt', 'orccdt2','Code','mdccma2','tmdtype2']]
 #%%Create a dataframe of the census divsion with matching column codes to TRSC destination
-Cen_div_df= pd.read_csv('EAB_Model/Data_Collection/SGC-CGT-2016-Structure-eng.csv')
+Cen_div_df= pd.read_csv('Data_Collection/SGC-CGT-2016-Structure-eng.csv')
 #change the column name to Census division
 Cen_div_df = Cen_div_df[Cen_div_df['Hierarchical structure'] == 'Census division']
 
@@ -88,19 +88,21 @@ Orig_merg_df = Orig_mrtm_df.merge(Mrtm_div_df.explode('Code'), on = 'Code', how 
 
 d={'Destination': Dest_merg_df,'Origin': Orig_merg_df}
 print(Mrtm_div_df.explode('Code'))
-Dest_merg_df.to_csv('Destination_TRSC')
-Orig_merg_df.to_csv('Origin_TRSC')
+Dest_merg_df.to_csv('Destination_TSRC')
+Orig_merg_df.to_csv('Origin_TSRC')
 
 #%%
 import matplotlib.pyplot as plt
 import numpy as np
 for k,v in d.items():
-    
-    Plot_df = v['Class title'].value_counts()
+    data = v['Class title'].value_counts()
+    print(data)
+    Plot_df = pd.DataFrame(data,)
 
-    print(Plot_df.values)
+    filename = k + '_' + 'TSRC_counts.csv'
+    Plot_df.to_csv(filename)
 
-    objects = Plot_df.index
+    objects = data.index
     y_pos = np.arange(len(objects))
     plt.bar(y_pos, Plot_df.values)
     plt.rcParams['figure.dpi'] = 600
