@@ -101,10 +101,14 @@ for k,v in d.items():
 
     filename = k + '_' + 'TSRC_counts.csv'
     Plot_df.to_csv(filename)
-
+    flat_list = []
+    for sublist in Plot_df.values:
+        for item in sublist:
+            flat_list.append(item)
     objects = data.index
     y_pos = np.arange(len(objects))
-    plt.bar(y_pos, Plot_df.values)
+    print(Plot_df.values)
+    plt.bar(y_pos, height = flat_list)
     plt.rcParams['figure.dpi'] = 600
     plt.xticks(y_pos, objects, size=5,rotation=90)
     plt.ylabel('Trips')

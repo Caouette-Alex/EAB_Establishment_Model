@@ -28,46 +28,41 @@ df = pd.read_spss('Data_collection/TRSC_2017.sav')
 
 #print(df.dtypes.head(15))
 #Create a copy of the main datasheet but only include Maritime province destinations in the maritimes
-Dest_mrtm_df = df.copy()
-Dest_mrtm_df = Dest_mrtm_df[Dest_mrtm_df['mddplfl'].str.match('New Brunswick|Nova Scotia|Prince Edward Island')]
+mrtm_df = df.copy()
+mrtm_df = mrtm_df[(mrtm_df['mddplfl'].str.match('New Brunswick|Nova Scotia|Prince Edward Island') & mrtm_df['orcprovt'].str.match('New Brunswick|Nova Scotia|Prince Edward Island'))]
 
-#Create a copy of the main datasheet but only include the Maritime province origins
-Orig_mrtm_df = df.copy()
-Orig_mrtm_df = Orig_mrtm_df[Orig_mrtm_df['orcprovt'].str.match('New Brunswick|Nova Scotia|Prince Edward Island')]
 
 
 #%%TRSC Destination data manipulation
 
 #Change the province name to the code system to match provinces name
-Dest_mrtm_df['mddplfl'] = Dest_mrtm_df['mddplfl'].replace({'Prince Edward Island':'11','Nova Scotia':'12', 'New Brunswick':'13'})
+cols = ['mddplfl','orcprovt']
+mrtm_df[cols] = mrtm_df[cols].replace({'Prince Edward Island':'11','Nova Scotia':'12', 'New Brunswick':'13'})
 
 #Remove NaN values and make all values two numbers long
-Dest_mrtm_df = Dest_mrtm_df[Dest_mrtm_df['mdccd'].notna()].astype(str).replace('\.0', '', regex=True)
-Dest_mrtm_df['mdccd'] = Dest_mrtm_df['mdccd'].apply(lambda x: '{0:0>2}'.format(x))
+mrtm_df = mrtm_df[mrtm_df['mdccd'].notna()].astype(str).replace('\.0', '', regex=True)
+mrtm_df['mdccd'] = mrtm_df['mdccd'].apply(lambda x: '{0:0>2}'.format(x))
+
+mrtm_df = mrtm_df[mrtm_df['orccdt2'].notna()].astype(str).replace('\.0', '', regex=True)
+mrtm_df['orccdt2'] = mrtm_df['orccdt2'].apply(lambda x: '{0:0>2}'.format(x))
 
 
-print(Dest_mrtm_df.dtypes.head(15))
+
+print(mrtm_df.dtypes.head(15))
 #Create a new column with a code value including the province and census division
-Dest_mrtm_df['Code'] = Dest_mrtm_df['mddplfl'].astype(str) + Dest_mrtm_df['mdccd'].astype(str)
-Dest_mrtm_df['Code'] = Dest_mrtm_df['Code'].astype(str).replace('\.0', '', regex=True)
+mrtm_df['dest_code'] = mrtm_df['mddplfl'].astype(str) + mrtm_df['mdccd'].astype(str)
+mrtm_df['dest_code'] = mrtm_df['dest_code'].astype(str).replace('\.0', '', regex=True)
+
+mrtm_df['orig_code'] = mrtm_df['orcprovt'].astype(str) + mrtm_df['orccdt2'].astype(str)
+mrtm_df['orig_code'] = mrtm_df['orig_code'].astype(str).replace('\.0', '', regex=True)
 #keep only trips that use a car or a truck or a camper or RV
-Dest_mrtm_df= Dest_mrtm_df[Dest_mrtm_df['tmdtype2'].isin(['Car or truck','Camper or RV'])]
+print(mrtm_df.tmdtype2.unique())
+mrtm_df= mrtm_df[mrtm_df['tmdtype2'].isin(['Car or truck','Camper or RV'])]
 #Keep only columns that contain the trip month, ID, Type(overnight or sameday)
-Dest_mrtm_df= Dest_mrtm_df[['refmonth', 'tripid', 'triptype', 'mddplfl', 'mdccd','Code','mdccma2','tmdtype2']]
+mrtm_df= mrtm_df[['refmonth', 'tripid', 'triptype','orcprovt','orccdt2','orig_code', 'mddplfl', 'mdccd','dest_code','mdccma2','tmdtype2']]
 
-#%%
-Orig_mrtm_df['orcprovt'] = Orig_mrtm_df['orcprovt'].replace({'Prince Edward Island':'11','Nova Scotia':'12', 'New Brunswick':'13'})
-
-#Remove NaN values and make all values two numbers long
-Orig_mrtm_df = Orig_mrtm_df[Orig_mrtm_df['orccdt2'].notna()].astype(str).replace('\.0', '', regex=True)
-Orig_mrtm_df['orccdt2'] = Orig_mrtm_df['orccdt2'].apply(lambda x: '{0:0>2}'.format(x))
-
-Orig_mrtm_df['Code'] = Orig_mrtm_df['orcprovt'].astype(str) + Orig_mrtm_df['orccdt2'].astype(str)
-Orig_mrtm_df['Code'] = Orig_mrtm_df['Code'].astype(str).replace('\.0', '', regex=True)
-#keep only trips that use a car or a truck or a camper or RV
-Orig_mrtm_df= Orig_mrtm_df[Orig_mrtm_df['tmdtype2'].isin(['Car or truck','Camper or RV'])]
-#Keep only columns that contain the trip month, ID, Type(overnight or sameday)
-Orig_mrtm_df= Orig_mrtm_df[['refmonth', 'tripid', 'triptype', 'orcprovt', 'orccdt2','Code','mdccma2','tmdtype2']]
+#%% Calcualte unique values from the grouped locations
+print(mrtm_df.groupby(['orig_code','dest_code']).size())
 #%%Create a dataframe of the census divsion with matching column codes to TRSC destination
 Cen_div_df= pd.read_csv('Data_Collection/SGC-CGT-2016-Structure-eng.csv')
 #change the column name to Census division
