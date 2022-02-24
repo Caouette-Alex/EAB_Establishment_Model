@@ -65,3 +65,5 @@ mrtm_df= mrtm_df[['refmonth', 'tripid', 'triptype','orcprovt','orccdt2','orig_co
 travel = mrtm_df.groupby(['orig_code','dest_code']).size()
 travel_df = pd.DataFrame(travel)
 travel_df = travel_df.rename(columns = {0:'count'}) 
+total_trips = travel_df['count'].count()
+travel_df['trip_norm'] = travel_df['count']/total_trips
