@@ -49,7 +49,8 @@ Add the TSRC travel data to the columns
 Edgelist_df['CDUID_joined'] = Edgelist_df['Orig_CDUID'].astype(str) + '_' + Edgelist_df['Dest_CDUID'].astype(str)
 
 TSRC_values = pd.read_csv('TSRC/TSRC_values.csv')
-TSRC_values['CDUID_joined'] = TSRC_values['orig_code'].astype(str) + '_' + TSRC_values['dest_code'].astype(str)
+#TSRC_values['CDUID_joined'] = TSRC_values['orig_code'].astype(str) + '_' + TSRC_values['dest_code'].astype(str)
+TSRC_values = TSRC_values.rename(columns={'join_code':'CDUID_joined'})
 
 Edgelist_join_df= Edgelist_df.merge(TSRC_values, on='CDUID_joined',how='outer')
 

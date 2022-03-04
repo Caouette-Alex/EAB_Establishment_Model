@@ -94,11 +94,14 @@ df = df.iloc[:, 2::3]
 #%%
 df = df.fillna(0)
 
-df['sum'] = (df.sum(axis=1))/11
+df['mean_trips_year'] = (df.sum(axis=1))/11
 
     
-#total_trips = travel_df['count'].count()
+total_trips = df['mean_trips_year'].count()
 
-#travel_df['trip_norm'] = travel_df['count']/total_trips
+df['trip_norm'] = df['mean_trips_year']/total_trips
 
-#travel_df.to_csv('Coding/TSRC/TSRC_values.csv')
+os.chdir('\..')
+os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model')
+
+df.to_csv('Coding/TSRC/TSRC_values.csv')
