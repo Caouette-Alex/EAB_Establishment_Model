@@ -22,7 +22,7 @@ import os
 os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/data_collection')
 
-
+d={}
 for filename in os.listdir('RAW_TSRC_DATA'):
     csv_file = "RAW_TSRC_DATA/" + filename
     #Read the full TSRC data set from all years
@@ -79,13 +79,24 @@ for filename in os.listdir('RAW_TSRC_DATA'):
     travel = mrtm_df.groupby(['orig_code','dest_code']).size()
     travel_df = pd.DataFrame(travel)
     travel_df = travel_df.rename(columns = {0:'count'}) 
-    
+    travel_df = travel_df.reset_index()
+    travel_df['join_code'] = travel_df['orig_code'].astype(str) + '_' + travel_df['dest_code'].astype(str)
     name = str(filename)+'_count_data.csv'
     travel_df.to_csv(name)
-    
+    d[filename]=travel_df
 #%%
-for k,v in d.items():
-    k = pd.DataFrame(v)
+d = { k: v.set_index('join_code') for k, v in d.items()}
+
+df = pd.concat(d,axis = 1)
+df.columns = df.columns.droplevel(-1)
+#%%
+df = df.iloc[:, 2::3]
+#%%
+df = df.fillna(0)
+
+df['sum'] = (df.sum(axis=1))/11
+
+    
 #total_trips = travel_df['count'].count()
 
 #travel_df['trip_norm'] = travel_df['count']/total_trips
