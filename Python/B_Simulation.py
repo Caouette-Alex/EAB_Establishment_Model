@@ -165,7 +165,7 @@ class Simulation:
         city_nodes = [n
             for (n, ty) in \
                 nx.get_node_attributes(self.G, 'Type').items() if ty == 'city_to_city']
-
+        #for changing shapes of citys and campgrounds
         camp_nodes = [n  
             for (n, ty) in \
                 nx.get_node_attributes(self.G, 'Type').items() if ty == 'city_to_camp']
@@ -198,6 +198,8 @@ class Simulation:
         node_colors = [self._categorical_color(state[n]) for n in self.G.nodes]
         nx.draw(self.G, pos=nx.get_node_attributes(self.G, 'pos'), node_color=node_colors, node_size=8, width=0.05, **kwargs)
         
+        #nx.draw_networkx_nodes(self.G, pos=nx.get_node_attributes(self.G, 'pos'), node_shape = '^', node_size=8,node_color=node_colors)
+        #nx.draw_networkx_nodes(self.G, pos=nx.get_node_attributes(self.G, 'pos'), nodelist = camp_nodes, node_shape = 'o', node_size=8,node_color=node_colors)
         if labels is None:
             labels = sorted(set(state.values()), key=self._value_index.get)
         patches = [mpl.patches.Patch(color=self._categorical_color(l), label=l)
@@ -215,6 +217,22 @@ class Simulation:
         plt.title(title)
         
         plt.show()
+    def animate(self, step= -1,**kwargs):
+        from matplotlib import pyplot as plt, animation
+        state = self.state(step)
+        plt.rcParams["figure.figsize"] = [7.50, 3.50]
+        plt.rcParams["figure.autolayout"] = True
+        fig = plt.figure()
+        
+        node_colors = [self._categorical_color(state[n]) for n in self.G.nodes]
+        nx.draw(self.G, pos=nx.get_node_attributes(self.G, 'pos'), node_color=node_colors, node_size=8, width=0.05, **kwargs)
+        def animate(frame):
+           fig.clear()
+           nx.draw(self.G, with_labels=True)
+        
+        ani = animation.FuncAnimation(fig, animate, frames=len(self._states) - 1, interval=1000, repeat=True)
+
+        plt.show()        
     def plot(self, min_step=None, max_step=None, labels=None, **kwargs):
         '''
         Use pyplot to plot the relative number of nodes with each state at each

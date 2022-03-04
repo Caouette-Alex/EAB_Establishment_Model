@@ -10,27 +10,27 @@ import os
 
 os.chdir('\..')
 #os.getcwd()
-os.chdir("Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding/Camping_data")
+os.chdir("Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding")
 #%%
 
 #Create dataframe of City to campground distance data pulled from Arcmap
-dist_camp_df = pd.read_csv('Distance_camp_city.csv')
+dist_camp_df = pd.read_csv('Camping_data/Distance_camp_city.csv')
 dist_camp_df = dist_camp_df[['Name','Total_Leng']].rename(columns={'Total_Leng':'Distance_Km'})
 dist_camp_df['Distance_Km'] = dist_camp_df['Distance_Km']/1000
 
 #Open edgelist of city to campground locations
-camp_df = pd.read_csv('Edgelist_citytocamp.csv').rename(columns={'Unnamed: 0':'ID'})
+camp_df = pd.read_csv('Camping_data/Edgelist_citytocamp.csv').rename(columns={'Unnamed: 0':'ID'})
 #Merge dataframes to a single edgelist dataframe including the population size,number campsites, distance, etc..
 camp_edgelist = camp_df.merge(dist_camp_df, left_on='ID', right_on='Name').dropna(subset=['Sites'])
 #%%
 
 #Create dataframe of City to city distance data pulled from Arcmap
-dist_city_df = pd.read_csv('Distance_city_city.csv')
+dist_city_df = pd.read_csv('Camping_data/Distance_city_city.csv')
 dist_city_df = dist_city_df[['Name','Total_Leng']].rename(columns={'Total_Leng':'Distance_Km'})
 dist_city_df['Distance_Km'] = dist_city_df['Distance_Km']/1000
 
 #Open edgelist of city to campground locations
-city_df = pd.read_csv('Edgelist_citytocity.csv').rename(columns={'Unnamed: 0':'ID'})
+city_df = pd.read_csv('Camping_data/Edgelist_citytocity.csv').rename(columns={'Unnamed: 0':'ID'})
 #Merge dataframes to a single edgelist dataframe including the population size,number campsites, distance, etc..
 city_edgelist = city_df.merge(dist_city_df, left_on='ID', right_on='Name') 
 city_edgelist['Distance_Km'] = city_edgelist['Distance_Km'].replace(0, np.nan)
@@ -39,4 +39,18 @@ city_edgelist = city_edgelist.dropna(subset=['Distance_Km'])
 #fill all empty 
 Edgelist_df= camp_edgelist.append(city_edgelist).fillna(-1)
 
-Edgelist_df.to_csv('Edgelist.csv')
+Edgelist_df.to_csv('Camping_data/Edgelist_dist.csv')
+
+#%%
+"""
+Add the TSRC travel data to the columns
+
+"""
+Edgelist_df['CDUID_joined'] = Edgelist_df['Orig_CDUID'].astype(str) + '_' + Edgelist_df['Dest_CDUID'].astype(str)
+
+TSRC_values = pd.read_csv('TSRC/TSRC_values.csv')
+TSRC_values['CDUID_joined'] = TSRC_values['orig_code'].astype(str) + '_' + TSRC_values['dest_code'].astype(str)
+
+Edgelist_join_df= Edgelist_df.merge(TSRC_values, on='CDUID_joined',how='outer')
+
+Edgelist_join_df.to_csv('Camping_data/Edgelist_Dist_TSRC.csv')

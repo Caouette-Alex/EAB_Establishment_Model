@@ -12,3 +12,6 @@ os.chdir('\..')
 #os.getcwd()
 os.chdir("Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding/Camping_data")
 
+Edgelist_df = pd.read_csv('Edgelist_csv') 
+
+Edgelist_df.to_csv('Edgelist_dist_trav.csv')

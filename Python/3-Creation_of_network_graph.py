@@ -20,7 +20,7 @@ os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding')
 
 #Open edgelist of camping and cities that are interconnected, inlcudes population, sites, lat and long, From file 2-Merge_distance_to_edgelist.py
-edgelist_df= pd.read_csv('Camping_data/Edgelist.csv')
+edgelist_df= pd.read_csv('Camping_data/Edgelist_dist_TSRC.csv')
 #%% Define the initial state of infested locations from non-infested ones and define what happens in the following year
 #initial state defines cities that are infested, this is a fixed set of locations: Edmundston, Halifax, Fredericton, Oromocto, and Moncton
 def initial_state(G):
@@ -120,7 +120,7 @@ def state_transition(G, current_state):
                     
     return next_state
 #%% Create Graph from pandas edgelist and insert node and edge attributes
-G = nx.from_pandas_edgelist(edgelist_df,source='Orig_name',target='Dest_name',edge_attr=['Distance_Km'])
+G = nx.from_pandas_edgelist(edgelist_df,source='Orig_name',target='Dest_name',edge_attr=['Distance_Km','trip_norm'])
 
 #add coordinates for each node by first creating key value group of {Dest name: Long, lat}
 dict_pos=dict(zip(edgelist_df.Dest_name,list(zip(edgelist_df.Dest_long,edgelist_df.Dest_lat))))
@@ -176,6 +176,10 @@ print(time.process_time() - start)
 from datetime import datetime
 filename = 'Sim_'+datetime.today().strftime('%Y-%m-%d')+num_of_sims
 invas_time.to_csv(filename)
+#%%
+Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
+Sim.run(3)
+Sim.animate()
 #%% Draw the graph with node lat and long without running the simulation
 
 os.chdir('\..')

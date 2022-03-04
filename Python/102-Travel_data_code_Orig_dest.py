@@ -67,3 +67,5 @@ travel_df = pd.DataFrame(travel)
 travel_df = travel_df.rename(columns = {0:'count'}) 
 total_trips = travel_df['count'].count()
 travel_df['trip_norm'] = travel_df['count']/total_trips
+
+travel_df.to_csv('Coding/TSRC/TSRC_values.csv')
