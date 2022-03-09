@@ -20,7 +20,7 @@ os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding')
 
 #Open edgelist of camping and cities that are interconnected, inlcudes population, sites, lat and long, From file 2-Merge_distance_to_edgelist.py
-edgelist_df= pd.read_csv('Camping_data/Edgelist_dist_TSRC.csv')
+edgelist_df= pd.read_csv('Camping_data/Edgelist_Dist_TSRC.csv')
 #%% Define the initial state of infested locations from non-infested ones and define what happens in the following year
 #initial state defines cities that are infested, this is a fixed set of locations: Edmundston, Halifax, Fredericton, Oromocto, and Moncton
 def initial_state(G):
@@ -57,6 +57,7 @@ def state_transition(G, current_state):
     for node in G.nodes:
         #if the node is infected, print the number of campers leaving the campground with infested wood/year(per capita value) is calculated, and calculate the total campground pull value from all campgrounds(in degree)
         if current_state[node] == 'I':
+            # Only cities that are infected can move EAB to different places
             if G.nodes[node]['Type'] == 'city_to_city':
                 #number of infected campers from Origin location
                 nx.set_node_attributes(G,{node:G.nodes[node]['Population']*(per_capita_value*prob_infested_wood)},'Infected_camper')
@@ -85,12 +86,14 @@ def state_transition(G, current_state):
                         node_degree_camp[neighbor]=pull
                         origin_degree_camp[node]=node_degree_camp
                     else : 
-                        P_i=G.nodes[neighbor]['Population']
+                        P_j=G.nodes[node]['Population']
+                        #Mean number of trips made from county A to county B
+                        M_ij=G.edges[neighbor,node]['mean_trips_year']
                         D_ij=G.edges[neighbor,node]['Distance_Km']
                     
                         #Calculate attractance value(Pull) load them into a dictionary of dictionary for each infected node
                         #dict : origin_degree = {Origin(node):{Campground(neighbor): normalized_pull}}
-                        pull = (P_i/D_ij)
+                        pull = (P_i*M_ij/D_ij)
                         node_degree_city[neighbor]=pull
                         origin_degree_city[node]=node_degree_city          
     # create a list of randomly distributed infected campers(number of campers using k values) going from origin to a susceptible campground       
@@ -120,7 +123,7 @@ def state_transition(G, current_state):
                     
     return next_state
 #%% Create Graph from pandas edgelist and insert node and edge attributes
-G = nx.from_pandas_edgelist(edgelist_df,source='Orig_name',target='Dest_name',edge_attr=['Distance_Km','trip_norm'])
+G = nx.from_pandas_edgelist(edgelist_df,source='Orig_name',target='Dest_name',edge_attr=['Distance_Km','mean_trips_year'])
 
 #add coordinates for each node by first creating key value group of {Dest name: Long, lat}
 dict_pos=dict(zip(edgelist_df.Dest_name,list(zip(edgelist_df.Dest_long,edgelist_df.Dest_lat))))
@@ -142,13 +145,13 @@ import time
 start = time.process_time()
 #run the number of interations that you want to run range= the number wanted
 invas_time = pd.DataFrame(columns=G.nodes)
-num_of_sims = 10
+num_of_sims = 1
 for i in range(num_of_sims):#1000 repeats
     print('Completed', i, 'Simulations out of', num_of_sims)
     #Define the class and the variables inital state and state transition are described above as 
     Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
     #run the simulation
-    Sim.run(50)
+    Sim.run()
     #Draw the network at each interval of nth steps()
     Sim.draw()
     plt.show()
@@ -239,3 +242,80 @@ plt.show()
 
 
 #%% Test Variables
+from mpl_toolkits.basemap import Basemap
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib.patches as mpatches
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
+
+
+# function to create inset axes and plot bar chart on it
+# this is good for 3 items bar chart
+def build_bar(mapx, mapy, ax, width, xvals=['a','b','c'], yvals=[1,4,2], fcolors=['r','y','b']):
+    ax_h = inset_axes(ax, width=width, \
+                    height=width, \
+                    loc=3, \
+                    bbox_to_anchor=(mapx, mapy), \
+                    bbox_transform=ax.transData, \
+                    borderpad=0, \
+                    axes_kwargs={'alpha': 0.35, 'visible': True})
+    for x,y,c in zip(xvals, yvals, fcolors):
+        ax_h.bar(x, y, label=str(x), fc=c)
+    #ax.xticks(range(len(xvals)), xvals, fontsize=10, rotation=30)
+    ax_h.axis('off')
+    return ax_h
+
+
+
+# =======
+# Make the map here
+# --------------
+
+fig, ax = plt.subplots(figsize=(10, 9))  # bigger is better
+
+
+plt.rcParams['figure.dpi'] = 300
+#Create the outer edges of the image
+map = Basemap(llcrnrlon=-68.6,llcrnrlat=43.42,urcrnrlon=-59.68,urcrnrlat=48.07,resolution='l', ellps='WGS84',lat_0=-64.37, lon_0=45.73)
+# Get shapegfile data and colour it by provincs
+map.readshapefile("maritime_prov1", "states")
+patches   = []
+for info, shape in zip(map.states_info, map.states):
+    if info['Name_EN'] == 'New Brunswick' or 'Nova Scotia' or 'Prince Edward Island' :
+        patches.append(Polygon(np.array(shape), True) )
+ax.add_collection(PatchCollection(patches, facecolor= 'coral', edgecolor='k', linewidths=1., zorder=0))
+
+
+plt.title('site_scores', fontsize=20)
+
+# ======================
+# make-up some locations
+# ----------------------
+n = 50   # you may use 121 here
+lon1s = 
+lat1s = mid_lat + hr_lat*(np.random.random_sample(n)-0.5)
+
+# make-up list of 3-values data for the locations above
+# -----------------------------------------------------
+bar_data = np.random.randint(1,5,[n,3])  # list of 3 items lists
+
+# create a barchart at each location in (lon1s,lat1s)
+# ---------------------------------------------------
+bar_width = 0.1  # inch
+colors = ['r','y','b']
+for ix, lon1, lat1 in zip(list(range(n)), lon1s, lat1s):
+    x1, y1 = bm(lon1, lat1)   # get data coordinates for plotting
+    bax = build_bar(x1, y1, ax, 0.2, xvals=['a','b','c'], \
+              yvals=bar_data[ix], \
+              fcolors=colors)
+
+# create legend (of the 3 classes)
+patch0 = mpatches.Patch(color=colors[0], label='The 0-data')
+patch1 = mpatches.Patch(color=colors[1], label='The 1-data')
+patch2 = mpatches.Patch(color=colors[2], label='The 2-data')
+ax.legend(handles=[patch0,patch1,patch2], loc=1)
+
+plt.show()
+#he plot will be

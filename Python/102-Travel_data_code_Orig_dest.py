@@ -96,10 +96,7 @@ df = df.fillna(0)
 
 df['mean_trips_year'] = (df.sum(axis=1))/11
 
-    
 total_trips = df['mean_trips_year'].count()
-
-df['trip_norm'] = df['mean_trips_year']/total_trips
 
 os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model')

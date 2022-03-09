@@ -48,10 +48,16 @@ Add the TSRC travel data to the columns
 """
 Edgelist_df['CDUID_joined'] = Edgelist_df['Orig_CDUID'].astype(str) + '_' + Edgelist_df['Dest_CDUID'].astype(str)
 
-TSRC_values = pd.read_csv('TSRC/TSRC_values.csv')
+TSRC_raw = pd.read_csv('TSRC/TSRC_values.csv')
 #TSRC_values['CDUID_joined'] = TSRC_values['orig_code'].astype(str) + '_' + TSRC_values['dest_code'].astype(str)
-TSRC_values = TSRC_values.rename(columns={'join_code':'CDUID_joined'})
+TSRC_raw = TSRC_raw.rename(columns={'join_code':'CDUID_joined'})
 
-Edgelist_join_df= Edgelist_df.merge(TSRC_values, on='CDUID_joined',how='outer')
+TSRC_mean = TSRC_raw[['CDUID_joined','mean_trips_year']]
+
+Edgelist_join_df= Edgelist_df.merge(TSRC_mean, on='CDUID_joined',how='outer').fillna(0.00000000000001)
+
+
+
+Edgelist_join_df['mean_trips_year'] = (Edgelist_join_df.sum(axis=1))/11
 
 Edgelist_join_df.to_csv('Camping_data/Edgelist_Dist_TSRC.csv')
