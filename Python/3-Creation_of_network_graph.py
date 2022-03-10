@@ -86,14 +86,14 @@ def state_transition(G, current_state):
                         node_degree_camp[neighbor]=pull
                         origin_degree_camp[node]=node_degree_camp
                     else : 
-                        P_j=G.nodes[node]['Population']
+                        P_i=G.nodes[node]['Population']
                         #Mean number of trips made from county A to county B
                         M_ij=G.edges[neighbor,node]['mean_trips_year']
                         D_ij=G.edges[neighbor,node]['Distance_Km']
                     
                         #Calculate attractance value(Pull) load them into a dictionary of dictionary for each infected node
                         #dict : origin_degree = {Origin(node):{Campground(neighbor): normalized_pull}}
-                        pull = (P_i*M_ij/D_ij)
+                        pull = ((P_i*M_ij)/D_ij)
                         node_degree_city[neighbor]=pull
                         origin_degree_city[node]=node_degree_city          
     # create a list of randomly distributed infected campers(number of campers using k values) going from origin to a susceptible campground       
@@ -144,14 +144,14 @@ import time
 
 start = time.process_time()
 #run the number of interations that you want to run range= the number wanted
-invas_time = pd.DataFrame(columns=G.nodes)
-num_of_sims = 1
+invas_time = pd.DataFrame(index=G.nodes)
+num_of_sims = 10
 for i in range(num_of_sims):#1000 repeats
     print('Completed', i, 'Simulations out of', num_of_sims)
     #Define the class and the variables inital state and state transition are described above as 
     Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
     #run the simulation
-    Sim.run()
+    Sim.run(5)
     #Draw the network at each interval of nth steps()
     Sim.draw()
     plt.show()
@@ -160,10 +160,10 @@ for i in range(num_of_sims):#1000 repeats
     plt.show()
     #Show the time to invasion for each city
     Sim.invasion_time()
-    # TODO Append each simulation time to invasion as a row in a dataframe
-    invas_time = invas_time.append(Sim._time_invas, ignore_index=True)
+    #Append each simulation time to invasion as a column in a dataframe
+    invas_time[i] = invas_time.index.map(Sim._time_invas)
 invas_time = invas_time.fillna(0)
-Sum_stat_df = invas_time.describe() 
+Sum_stat_df = invas_time.transpose().describe().transpose()
 
 #save data to CSV file using the following format Sim_YYYY_MM_DD_####(number of simulations)
 from datetime import datetime

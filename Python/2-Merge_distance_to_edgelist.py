@@ -58,6 +58,6 @@ Edgelist_join_df= Edgelist_df.merge(TSRC_mean, on='CDUID_joined',how='outer').fi
 
 
 
-Edgelist_join_df['mean_trips_year'] = (Edgelist_join_df.sum(axis=1))/11
+Edgelist_join_df['trips_norm'] = Edgelist_join_df['mean_trips_year']/(Edgelist_join_df['mean_trips_year'].sum())
 
 Edgelist_join_df.to_csv('Camping_data/Edgelist_Dist_TSRC.csv')
