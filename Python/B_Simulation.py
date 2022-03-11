@@ -65,6 +65,7 @@ class Simulation:
         cmap = LinearSegmentedColormap.from_list('my_list',['#2ca02c','#d62728'] , N=2)
         self._cmap = plt.cm.get_cmap(cmap)
         self._time_invas = {}
+        self._prob_invas = {}
         self._initialize()
         #self._intro_time = pd.DataFrame(index=self.G)
 
@@ -91,7 +92,7 @@ class Simulation:
         self._append_state(state)
 
     def _step(self):
-        invasion_step={}
+    
         # We're choosing to use the node attributes as the source of truth.
         # This allows the user to manually perturb the network in between steps.
         state = nx.get_node_attributes(self.G, 'state')
@@ -100,15 +101,24 @@ class Simulation:
         state = nx.get_node_attributes(self.G, 'state')
         new_state = self._state_transition(self.G, state)
         
-        # TODO Add an explanation for this
+        
+        
+        #This creates a dictionary to show what time period each k(node name) changes v(state) to infested 
+        #For those that are already infested at step 0(Edmundston, Moncton,Fredericton, Halifax, Oromocto)
+        for k, v in state.items():
+            if v == 'I':
+                if k not in self._time_invas:
+                    self._time_invas[k] = len(self._states)
+                    self._prob_invas[k] = 1
         for k, v in new_state.items():
            if k not in self._time_invas:
               self._time_invas[k] = len(self._states)
-
+              self._prob_invas[k] = 1
         
         state.update(new_state)
         nx.set_node_attributes(self.G, state, 'state')
         self._append_state(state)
+        
 
     def _categorical_color(self, value):
         index = self._value_index[value]

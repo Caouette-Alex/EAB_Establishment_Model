@@ -122,6 +122,11 @@ def state_transition(G, current_state):
                     next_state[node] = 'I'
                     
     return next_state
+#%% For testing purposes
+#Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
+##run the simulation
+#print(Sim._step())
+
 #%% Create Graph from pandas edgelist and insert node and edge attributes
 G = nx.from_pandas_edgelist(edgelist_df,source='Orig_name',target='Dest_name',edge_attr=['Distance_Km','mean_trips_year'])
 
@@ -143,28 +148,38 @@ import time
 
 
 start = time.process_time()
-#run the number of interations that you want to run range= the number wanted
-invas_time = pd.DataFrame(index=G.nodes)
-num_of_sims = 10
-for i in range(num_of_sims):#1000 repeats
-    print('Completed', i, 'Simulations out of', num_of_sims)
-    #Define the class and the variables inital state and state transition are described above as 
-    Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
-    #run the simulation
-    Sim.run(5)
-    #Draw the network at each interval of nth steps()
-    Sim.draw()
-    plt.show()
-    #Draw the proportions of infested nodes vs. susceptible nodes from time 0 to nth steps()
-    Sim.plot()
-    plt.show()
-    #Show the time to invasion for each city
-    Sim.invasion_time()
-    #Append each simulation time to invasion as a column in a dataframe
-    invas_time[i] = invas_time.index.map(Sim._time_invas)
-invas_time = invas_time.fillna(0)
-Sum_stat_df = invas_time.transpose().describe().transpose()
 
+
+#run the number of interations that you want to run range= the number wanted
+num_of_sims = 1000
+num_of_years = [5,10,15,20]
+
+for year in num_of_years:
+    invas_prob = pd.DataFrame(index=G.nodes)
+    invas_time = pd.DataFrame(index=G.nodes)
+
+    for i in range(num_of_sims):#1000 repeats
+        print('Completed', i, 'Simulations out of', num_of_sims)
+        #Define the class and the variables inital state and state transition are described above as 
+        Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
+        #run the simulation
+        Sim.run(year)
+        #Draw the network at each interval of nth steps()
+        Sim.draw()
+        plt.show()
+        #Draw the proportions of infested nodes vs. susceptible nodes from time 0 to nth steps()
+        Sim.plot()
+        plt.show()
+        #Show the time to invasion for each city
+        Sim.invasion_time()
+        #Append each simulation time to invasion as a column in a dataframe
+        invas_time[i] = invas_time.index.map(Sim._time_invas)
+        invas_prob[i] = invas_prob.index.map(Sim._prob_invas)
+    invas_prob = invas_prob.fillna(0)
+    sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
+    invas_time = invas_time.fillna(0)
+    sum_invas_time_df = invas_time.transpose().describe().transpose()
+    d[year] = [invas_prob, invas_time]
 #save data to CSV file using the following format Sim_YYYY_MM_DD_####(number of simulations)
 from datetime import datetime
 os.chdir('\..')
@@ -172,6 +187,8 @@ os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Mo
 filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)
 invas_time.to_csv(filename)
 print(time.process_time() - start)
+
+
 #%%Test the initial state and state transition functions without running the simulation
 #current_state = (initial_state(G))
 #print(state_transition(G, current_state))
