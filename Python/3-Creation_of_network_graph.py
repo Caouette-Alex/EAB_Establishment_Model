@@ -153,7 +153,7 @@ start = time.process_time()
 #run the number of interations that you want to run range= the number wanted
 num_of_sims = 1000
 num_of_years = [5,10,15,20]
-
+d={}
 for year in num_of_years:
     invas_prob = pd.DataFrame(index=G.nodes)
     invas_time = pd.DataFrame(index=G.nodes)
@@ -165,11 +165,11 @@ for year in num_of_years:
         #run the simulation
         Sim.run(year)
         #Draw the network at each interval of nth steps()
-        Sim.draw()
-        plt.show()
+        #Sim.draw()
+        #plt.show()
         #Draw the proportions of infested nodes vs. susceptible nodes from time 0 to nth steps()
-        Sim.plot()
-        plt.show()
+        #Sim.plot()
+        #plt.show()
         #Show the time to invasion for each city
         Sim.invasion_time()
         #Append each simulation time to invasion as a column in a dataframe
@@ -179,7 +179,16 @@ for year in num_of_years:
     sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
     invas_time = invas_time.fillna(0)
     sum_invas_time_df = invas_time.transpose().describe().transpose()
-    d[year] = [invas_prob, invas_time]
+    d[year] = [sum_invas_prob_df, sum_invas_time_df]
+#%%
+df= pd.DataFrame()
+for k,v in d.items():
+    #for dataframe in interval:
+    df[k] = v[0]['mean']
+df_coord = df.join(pd.DataFrame.from_dict(dict_pos,orient ='index')).rename(columns = {0:'lat', 1:'long'})
+
+
+
 #save data to CSV file using the following format Sim_YYYY_MM_DD_####(number of simulations)
 from datetime import datetime
 os.chdir('\..')
@@ -264,9 +273,17 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
-from matplotlib.patches import Polygon
-from matplotlib.collections import PatchCollection
 
+
+# prep values for map extents and more
+llcrnrlat = 43.42
+llcrnrlon = -68.6
+urcrnrlat = 49
+urcrnrlon = -59.68
+mid_lon = (urcrnrlon+llcrnrlon)/2.0
+hr_lon = (urcrnrlon-llcrnrlon)/2.0
+mid_lat = (urcrnrlat+llcrnrlat)/2.0
+hr_lat = (urcrnrlat-llcrnrlat)/2.0
 
 # function to create inset axes and plot bar chart on it
 # this is good for 3 items bar chart
@@ -284,43 +301,39 @@ def build_bar(mapx, mapy, ax, width, xvals=['a','b','c'], yvals=[1,4,2], fcolors
     ax_h.axis('off')
     return ax_h
 
-
-
-# =======
-# Make the map here
-# --------------
-
 fig, ax = plt.subplots(figsize=(10, 9))  # bigger is better
 
+bm = Basemap(llcrnrlat= llcrnrlat,\
+             llcrnrlon= llcrnrlon,\
+             urcrnrlat= urcrnrlat,\
+             urcrnrlon= urcrnrlon,\
+             ax = ax,\
+             resolution='i', projection='tmerc', lon_0=-62, lat_0=45)
+    
 
-plt.rcParams['figure.dpi'] = 300
-#Create the outer edges of the image
-map = Basemap(llcrnrlon=-68.6,llcrnrlat=43.42,urcrnrlon=-59.68,urcrnrlat=48.07,resolution='l', ellps='WGS84',lat_0=-64.37, lon_0=45.73)
-# Get shapegfile data and colour it by provincs
-map.readshapefile("maritime_prov1", "states")
-patches   = []
-for info, shape in zip(map.states_info, map.states):
-    if info['Name_EN'] == 'New Brunswick' or 'Nova Scotia' or 'Prince Edward Island' :
-        patches.append(Polygon(np.array(shape), True) )
-ax.add_collection(PatchCollection(patches, facecolor= 'coral', edgecolor='k', linewidths=1., zorder=0))
+bm.drawstates(linewidth=0.2)
+bm.drawmapboundary(fill_color='paleturquoise',zorder=-2)
+bm.fillcontinents(color='lightyellow', zorder=0)
+bm.drawcoastlines(color='gray', linewidth=0.3, zorder=2)
 
-
-plt.title('site_scores', fontsize=20)
+plt.title('invasion probability by year', fontsize=20)
 
 # ======================
 # make-up some locations
 # ----------------------
-n = 50   # you may use 121 here
-lon1s = 
-lat1s = mid_lat + hr_lat*(np.random.random_sample(n)-0.5)
-
+n = 238   # you may use 121 here
+lon1s = df_coord['lat'].tolist()
+lat1s = df_coord['long'].tolist()
 # make-up list of 3-values data for the locations above
 # -----------------------------------------------------
-bar_data = np.random.randint(1,5,[n,3])  # list of 3 items lists
+coord = df_coord.to_dict('split')
+
+
+bar_data = [item[0:3] for item in coord['data']]
 
 # create a barchart at each location in (lon1s,lat1s)
 # ---------------------------------------------------
-bar_width = 0.1  # inch
+bar_width = 0.05  # inch
 colors = ['r','y','b']
 for ix, lon1, lat1 in zip(list(range(n)), lon1s, lat1s):
     x1, y1 = bm(lon1, lat1)   # get data coordinates for plotting
@@ -329,10 +342,9 @@ for ix, lon1, lat1 in zip(list(range(n)), lon1s, lat1s):
               fcolors=colors)
 
 # create legend (of the 3 classes)
-patch0 = mpatches.Patch(color=colors[0], label='The 0-data')
-patch1 = mpatches.Patch(color=colors[1], label='The 1-data')
-patch2 = mpatches.Patch(color=colors[2], label='The 2-data')
+patch0 = mpatches.Patch(color=colors[0], label='5 years')
+patch1 = mpatches.Patch(color=colors[1], label='10 years')
+patch2 = mpatches.Patch(color=colors[2], label='15 years')
 ax.legend(handles=[patch0,patch1,patch2], loc=1)
 
 plt.show()
-#he plot will be
