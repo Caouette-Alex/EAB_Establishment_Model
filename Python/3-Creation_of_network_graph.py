@@ -100,7 +100,7 @@ def state_transition(G, current_state):
     infected=[]
     Origin_keys=[]
     Origin_values=[]
-    
+    #Iterate through each of the sets and 
     for k, v in origin_degree_camp.items():
         infected.append(random.choices(list(v.keys()), weights=list(v.values()), k=num_inf_camper[k]))
         #turn a list of lists into a simple list, by removing extra brackets(flatten list)
@@ -152,7 +152,7 @@ start = time.process_time()
 
 #run the number of interations that you want to run range= the number wanted
 num_of_sims = 1000
-num_of_years = [5,10,15,20]
+num_of_years = [50]
 d={}
 for year in num_of_years:
     invas_prob = pd.DataFrame(index=G.nodes)
@@ -178,21 +178,33 @@ for year in num_of_years:
     invas_prob = invas_prob.fillna(0)
     sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
     invas_time = invas_time.fillna(0)
+#%%
+    invas_time = invas_time.replace(0,51)
     sum_invas_time_df = invas_time.transpose().describe().transpose()
     d[year] = [sum_invas_prob_df, sum_invas_time_df]
 #%%
+os.chdir('\..')
+os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
 df= pd.DataFrame()
 for k,v in d.items():
     #for dataframe in interval:
     df[k] = v[0]['mean']
 df_coord = df.join(pd.DataFrame.from_dict(dict_pos,orient ='index')).rename(columns = {0:'lat', 1:'long'})
-
-
-
-#save data to CSV file using the following format Sim_YYYY_MM_DD_####(number of simulations)
 from datetime import datetime
-os.chdir('\..')
-os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
+filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+'_Mean_invasion_probability_per_year'
+df_coord.to_csv(filename)
+
+df2 = pd.DataFrame()
+for k,v in d.items():
+    #for dataframe in interval:
+    df2[k] = v[1]['mean']
+df_coord = df2.join(pd.DataFrame.from_dict(dict_pos,orient ='index')).rename(columns = {0:'lat', 1:'long'})
+
+filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+'_Mean_invasion_year'
+df_coord.to_csv(filename)
+#save data to CSV file using the following format Sim_YYYY_MM_DD_####(number of simulations)
+
+
 filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)
 invas_time.to_csv(filename)
 print(time.process_time() - start)
@@ -207,8 +219,35 @@ filename = 'Sim_'+datetime.today().strftime('%Y-%m-%d')+num_of_sims
 invas_time.to_csv(filename)
 #%%
 Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
-Sim.run(3)
-Sim.animate()
+from matplotlib import pyplot as plt
+figures = []
+n= 20
+
+for i in range(n):
+    #filename = str(i) + '.png'
+    Sim.run(1)
+    #i = Sim.draw()
+    #plt.show() 
+    #plt.savefig(filename)
+    figures.append(Sim.draw())
+
+fig_names = []
+for idx, fig in enumerate(figures):
+    fname = '{}_tmp.jpg'.format(idx)
+    fig.savefig(fname)
+    fig_names.append(fname)
+    
+import imageio
+images = []
+for filename in fig_names:
+    images.append(imageio.imread(filename))
+imageio.mimsave('movie.gif', images, duration = 0.75)
+
+#import imageio
+#with imageio.get_writer('mygif.gif', mode='I') as writer:
+    #for filename in ['1.png', '2.png', '3.png', '4.png']:
+        #image = imageio.imread(filename)
+        #writer.append_data(image)
 #%% Draw the graph with node lat and long without running the simulation
 
 os.chdir('\..')

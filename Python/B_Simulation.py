@@ -62,7 +62,7 @@ class Simulation:
         self._value_index = {}
         from matplotlib.colors import LinearSegmentedColormap
         #choose the colours for the colour map
-        cmap = LinearSegmentedColormap.from_list('my_list',['#2ca02c','#d62728'] , N=2)
+        cmap = LinearSegmentedColormap.from_list('my_list',['#d62728','#6e8f6e'] , N=2)
         self._cmap = plt.cm.get_cmap(cmap)
         self._time_invas = {}
         self._prob_invas = {}
@@ -181,11 +181,11 @@ class Simulation:
                 nx.get_node_attributes(self.G, 'Type').items() if ty == 'city_to_camp']
         
         #TODO add written descriptions of these 
-       
+        plt.rcParams['figure.dpi'] = 300
         fig     = plt.figure()
         ax      = fig.add_subplot(111)
         
-        plt.rcParams['figure.dpi'] = 300
+    
         #Create the outer edges of the image
         map = Basemap(llcrnrlon=-68.6,llcrnrlat=43.42,urcrnrlon=-59.68,urcrnrlat=48.07,resolution='l', ellps='WGS84',lat_0=-64.37, lon_0=45.73)
         # Get shapegfile data and colour it by provincs
@@ -195,7 +195,7 @@ class Simulation:
         for info, shape in zip(map.states_info, map.states):
             if info['Name_EN'] == 'New Brunswick' or 'Nova Scotia' or 'Prince Edward Island' :
                 patches.append( Polygon(np.array(shape), True) )
-        ax.add_collection(PatchCollection(patches, facecolor= 'coral', edgecolor='k', linewidths=1., zorder=0))
+        ax.add_collection(PatchCollection(patches, facecolor= 'thistle', edgecolor='k', linewidths=1., zorder=0))
         
          # add other boundaries and colour in water as blue and other states as grey
         map.drawmapboundary(fill_color='paleturquoise',zorder=-2)
@@ -206,9 +206,9 @@ class Simulation:
         state = self.state(step)
       
         node_colors = [self._categorical_color(state[n]) for n in self.G.nodes]
-        nx.draw(self.G, pos=nx.get_node_attributes(self.G, 'pos'), node_color=node_colors, node_size=8, width=0.05, **kwargs)
+        #nx.draw(self.G, pos=nx.get_node_attributes(self.G, 'pos'), node_color=node_colors, node_size=8, width=0.05, **kwargs)
         
-        #nx.draw_networkx_nodes(self.G, pos=nx.get_node_attributes(self.G, 'pos'), node_shape = '^', node_size=8,node_color=node_colors)
+        nx.draw_networkx_nodes(self.G, pos=nx.get_node_attributes(self.G, 'pos'), node_shape = 'o', node_size=10 ,node_color=node_colors)
         #nx.draw_networkx_nodes(self.G, pos=nx.get_node_attributes(self.G, 'pos'), nodelist = camp_nodes, node_shape = 'o', node_size=8,node_color=node_colors)
         if labels is None:
             labels = sorted(set(state.values()), key=self._value_index.get)
@@ -227,6 +227,7 @@ class Simulation:
         plt.title(title)
         
         plt.show()
+        return fig
     def animate(self, step= -1,**kwargs):
         from matplotlib import pyplot as plt, animation
         state = self.state(step)
@@ -242,7 +243,8 @@ class Simulation:
         
         ani = animation.FuncAnimation(fig, animate, frames=len(self._states) - 1, interval=1000, repeat=True)
 
-        plt.show()        
+        plt.show()
+        
     def plot(self, min_step=None, max_step=None, labels=None, **kwargs):
         '''
         Use pyplot to plot the relative number of nodes with each state at each
