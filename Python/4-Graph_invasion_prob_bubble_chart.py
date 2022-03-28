@@ -14,7 +14,7 @@ import matplotlib.patches as mpatches
 os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
 
-df = pd.read_csv('Sim_2022-03-14_1000_Mean_invasion_probability_per_year',index_col=0).drop(['1e-14'])
+df = pd.read_csv('Sim_2022-03-28_1000_Mean_invasion_probability_per_year',index_col=0).drop(['1e-14'])
 
 # prep values for map extents and more
 llcrnrlat = 43.42
@@ -52,26 +52,23 @@ for i in l:
     bm.drawcoastlines(color='gray', linewidth=0.3, zorder=2)
         
     x, y = bm(df['lat'].tolist(), df['long'].tolist())
-    sc = bm.scatter(x, y, marker='o', color = 'r', zorder=5, s=((df[i])))
+    sc = bm.scatter(x, y, marker='o', c = df[i], zorder=5, cmap= 'plasma',s=1)
     print(((df[i]))*3)
 fig.suptitle('Probability of emerald ash borer transport by years', y = 0.75)
 
 #fig2 = plt.figure() 
 #plt.axis('off')
 
-l1 = plt.scatter([],[], s=0.25, color='red')
-l2 = plt.scatter([],[], s=0.5, color='red')
-l3 = plt.scatter([],[], s=0.75, color='red')
-l4 = plt.scatter([],[], s=1, color='red')
+#l1 = plt.scatter([],[], s=0.25, color='red')
+#l2 = plt.scatter([],[], s=0.5, color='red')
+#l3 = plt.scatter([],[], s=0.75, color='red')
+#l4 = plt.scatter([],[], color='red')
 
 labels = ["0.25", "0.5", "0.75", "1"]
 
 
 
-leg = plt.legend([l1, l2, l3, l4], labels, ncol=4, frameon= False, fontsize=8,
-handlelength=2, bbox_to_anchor=(-0.7,-0.25),loc='center', borderpad = 1,
-handletextpad=1, scatterpoints = 1)
-
+leg = plt.legend(*sc.legend_elements(num=5), bbox_to_anchor=(-0.7,-0.25),loc='center', ncol=6, frameon= False, fontsize=8, borderpad = 1) 
 plt.show()
 #%%
 
@@ -104,22 +101,23 @@ bm.drawcoastlines(color='gray', linewidth=0.3, zorder=2)
 x, y = bm(df['lat'].tolist(), df['long'].tolist())
 
 
-sc = plt.scatter(x, y, marker='o', color = 'r', zorder=5, s=(1/df2['50'])*10)
+sc = plt.scatter(x, y, marker=, zorder=5, s=50, cmap= 'plasma_r', c = df2['50'])
 plt.title('Mean transportation year',fontsize=20)
 plt.legend(*sc.legend_elements("sizes", num=6))
-l1 = plt.scatter([],[], s=30, color='red')
-l2 = plt.scatter([],[], s=60, color='red')
-l3 = plt.scatter([],[], s=90, color='red')
-l4 = plt.scatter([],[], s=120, color='red')
-l5 = plt.scatter([],[], s=150, color='red')
+l1 = plt.scatter([],[], s=50, color='red')
+l2 = plt.scatter([],[], s=100, color='red')
+l3 = plt.scatter([],[], s=150, color='red')
+l4 = plt.scatter([],[], s=200, color='red')
+l5 = plt.scatter([],[], s=250, color='red')
 
-labels = ["3", "6", "9", "12","15"]
+labels = ["10", "20", "30", "40","50"]
 
 
 
-leg = plt.legend([l1, l2, l3, l4, l5], labels, ncol=1, frameon= False, fontsize=8,
-handlelength=2,loc='upper right', borderpad = 1,
-handletextpad=1, scatterpoints = 1)
+leg = plt.legend(*sc.legend_elements(num=[1,5,10,15,20,25,30,40,50]),loc = 'upper right',  frameon= False, ncol=1, fontsize=12, borderpad = 1)
+
+#handlelength=2,loc='upper right', borderpad = 1,
+#handletextpad=1, scatterpoints = 1)
 
 
 #x, y = bm(df['long'].tolist(), df['lat'].tolist() ) # transform coordinates

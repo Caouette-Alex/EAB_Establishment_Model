@@ -3,6 +3,9 @@
 Created on Wed Oct 27 17:41:20 2021
 
 @author: alexp
+
+This file takes the edgelist from (C:/Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding/Python/1-Create_edgelist.py) to add distance and travel between origin and destination
+
 """
 import numpy as np
 import pandas as pd
@@ -22,7 +25,6 @@ dist_camp_df['Distance_Km'] = dist_camp_df['Distance_Km']/1000
 camp_df = pd.read_csv('Camping_data/Edgelist_citytocamp.csv').rename(columns={'Unnamed: 0':'ID'})
 #Merge dataframes to a single edgelist dataframe including the population size,number campsites, distance, etc..
 camp_edgelist = camp_df.merge(dist_camp_df, left_on='ID', right_on='Name').dropna(subset=['Sites'])
-#%%
 
 #Create dataframe of City to city distance data pulled from Arcmap
 dist_city_df = pd.read_csv('Camping_data/Distance_city_city.csv')
@@ -35,7 +37,6 @@ city_df = pd.read_csv('Camping_data/Edgelist_citytocity.csv').rename(columns={'U
 city_edgelist = city_df.merge(dist_city_df, left_on='ID', right_on='Name') 
 city_edgelist['Distance_Km'] = city_edgelist['Distance_Km'].replace(0, np.nan)
 city_edgelist = city_edgelist.dropna(subset=['Distance_Km'])
-#%%
 #fill all empty 
 Edgelist_df= camp_edgelist.append(city_edgelist).fillna(-1)
 

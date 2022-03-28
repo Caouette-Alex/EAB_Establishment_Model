@@ -3,13 +3,20 @@
 Created on Fri Nov 12 11:13:42 2021
 
 @author: alexp
+
+This file takes the edgelist of origin and destination locations to simulate the probability that a location see's the transportation of invasive buprestid infested firewood by human movement,
+ the introduction of the emerald ash borer from the firewood into local trees, and their establishment by surmounting the allee effect.
+
+
+To do this we use the edgelist created from (C:/Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding/Python/2-Merge_distance_to_edgelist.py) and simulate the movement of firewood
+an origin(infested city) to a destination(susceptible city or campground).
+Each simulation iteration starts with the current infested cities: Edmundston, Halifax, Fredericton, Moncton, and Oromocto and estimates the number of infested firewood leaving the origin and being distributed randomly based on weighted values.
+We then extract data from the simulations into dataframes, including the transportation of firewood to destination after set period of time, the time to the first transportation of firewood, the number of propagules per year
 """
 #%% Import packages and add edgelist dataframe
 import os
 os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding/Python')
-
-import os
 import pandas as pd
 import networkx as nx
 #imported from files from the book by filippo Menczer, Santo Fortunato, and Clayton Davies A first Course in Network Science
@@ -21,6 +28,20 @@ os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Mo
 
 #Open edgelist of camping and cities that are interconnected, inlcudes population, sites, lat and long, From file 2-Merge_distance_to_edgelist.py
 edgelist_df= pd.read_csv('Camping_data/Edgelist_Dist_TSRC.csv')
+#%% Create Graph from pandas edgelist and insert node and edge attributes
+G = nx.from_pandas_edgelist(edgelist_df,source='Orig_name',target='Dest_name',edge_attr=['Distance_Km','mean_trips_year'])
+
+#add coordinates for each node by first creating key value group of {Dest name: Long, lat}
+dict_pos=dict(zip(edgelist_df.Dest_name,list(zip(edgelist_df.Dest_long,edgelist_df.Dest_lat))))
+dict_pos.update(dict(zip(edgelist_df.Orig_name,list(zip(edgelist_df.Orig_long,edgelist_df.Orig_lat)))))
+nx.set_node_attributes(G, dict_pos, 'pos')
+#Adding node attributes to origin locations and destination locations including the site population, number of campsites, and type of edge relationship(city-city vs. city-camp)
+nx.set_node_attributes(G, dict(zip(edgelist_df['Orig_name'],edgelist_df['Orig_pop'])),'Population')
+nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['Sites'])),'Sites')
+nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['type'])),'Type')# might need to change this to an edge attribute
+
+# TODO 
+
 #%% Define the initial state of infested locations from non-infested ones and define what happens in the following year
 #initial state defines cities that are infested, this is a fixed set of locations: Edmundston, Halifax, Fredericton, Oromocto, and Moncton
 def initial_state(G):
@@ -43,7 +64,7 @@ def initial_state(G):
 # State transition defines area's that transition from susceptible to infested in a year. 
 def state_transition(G, current_state):
     import random
-    #The first generalization is that a majority of campground visits involve relatively short travel distances (<100 km, which is usually a <2-h drive fromhome) Koch et al. 2012 
+    #The first generalization is that a majority of campground visits involve relatively short travel distances (<100 km, which is usually a <2-h drive from home) Koch et al. 2012 
     next_state={}
     degree={}
     origin_degree_camp={}
@@ -66,7 +87,7 @@ def state_transition(G, current_state):
                 #Get total campground attractance from all neighbour nodes
                 degree[node]= G.degree(node, weight='Campground_pull')
                 nx.set_node_attributes(G, degree,'in_degree')
-                num_inf_camper[node]=int(G.nodes[node]['Infected_camper'])
+                num_inf_camper[node]=round(G.nodes[node]['Infected_camper'])
                 
                 #Get the pull of each campground using number of campsites in campground and distance between campground and origin
                 node_degree_camp={}
@@ -78,10 +99,10 @@ def state_transition(G, current_state):
                         #defined variables X_i are the number of campsites, D_ij is the Distance between campground and origin
                         X_i=G.nodes[neighbor]['Sites']
                         D_ij=G.edges[neighbor,node]['Distance_Km']
-                        
+                        #g = X_i/(1-)
                         #Calculate attractance value(Pull) load them into a dictionary of dictionary for each infected node
                         #dict : origin_degree = {Origin(node):{Campground(neighbor): attractance}
-                        pull = (X_i/D_ij)
+                        pull = (X_i*(1*(1-0.5))**(D_ij/100))
                         pull_list.append(pull)
                         node_degree_camp[neighbor]=pull
                         origin_degree_camp[node]=node_degree_camp
@@ -93,21 +114,22 @@ def state_transition(G, current_state):
                     
                         #Calculate attractance value(Pull) load them into a dictionary of dictionary for each infected node
                         #dict : origin_degree = {Origin(node):{Campground(neighbor): normalized_pull}}
-                        pull = ((P_i*M_ij)/D_ij)
+                        pull = (P_i*M_ij)
                         node_degree_city[neighbor]=pull
                         origin_degree_city[node]=node_degree_city          
-    # create a list of randomly distributed infected campers(number of campers using k values) going from origin to a susceptible campground       
+                        
+    #create a list containing the names of locations that become infected
     infected=[]
-    Origin_keys=[]
-    Origin_values=[]
-    #Iterate through each of the sets and 
+    #
+    # distribute campers randomly (number of campers using k values) going from origin to a susceptible campground
     for k, v in origin_degree_camp.items():
+        #print(num_inf_camper)
         infected.append(random.choices(list(v.keys()), weights=list(v.values()), k=num_inf_camper[k]))
         #turn a list of lists into a simple list, by removing extra brackets(flatten list)
     infected_flat=[val for subgroup in infected for val in subgroup]
     infected_flat.sort()  
     d = {x:infected_flat.count(x) for x in infected_flat}
-   
+    
     for k, v in origin_degree_city.items():
         infected.append(random.choices(list(v.keys()), weights=list(v.values()), k=num_inf_camper[k]))
         #turn a list of lists into a simple list, by removing extra brackets(flatten list)
@@ -115,31 +137,20 @@ def state_transition(G, current_state):
     infected_flat.sort()  
     d = {x:infected_flat.count(x) for x in infected_flat}
     
+
+    
     for node in G.nodes:
         if current_state[node] == 'S':
             for node,count in d.items():
                 if count >1: 
                     next_state[node] = 'I'
-                    
+                  
     return next_state
 #%% For testing purposes
 #Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
 ##run the simulation
 #print(Sim._step())
 
-#%% Create Graph from pandas edgelist and insert node and edge attributes
-G = nx.from_pandas_edgelist(edgelist_df,source='Orig_name',target='Dest_name',edge_attr=['Distance_Km','mean_trips_year'])
-
-#add coordinates for each node by first creating key value group of {Dest name: Long, lat}
-dict_pos=dict(zip(edgelist_df.Dest_name,list(zip(edgelist_df.Dest_long,edgelist_df.Dest_lat))))
-dict_pos.update(dict(zip(edgelist_df.Orig_name,list(zip(edgelist_df.Orig_long,edgelist_df.Orig_lat)))))
-nx.set_node_attributes(G, dict_pos, 'pos')
-#Adding node attributes to origin locations and destination locations including the site population, number of campsites, and type of edge relationship(city-city vs. city-camp)
-nx.set_node_attributes(G, dict(zip(edgelist_df['Orig_name'],edgelist_df['Orig_pop'])),'Population')
-nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['Sites'])),'Sites')
-nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['type'])),'Type')# might need to change this to an edge attribute
-
-# TODO 
 
 #%% Run simulations 
 import numpy as np
@@ -149,17 +160,24 @@ import time
 
 start = time.process_time()
 
+#Run the simulation
+#   specify the number of interations that you want to where num_of_sims is the number of iterations of the simulation that you want to run normal amount is 1000
+#   Specify the number of years that you want to test in a list like format [5,10,20] = Runs model for 5 years, 10 years, and 20 years
+num_of_sims = 50
+num_of_years = [5,10,20]
 
-#run the number of interations that you want to run range= the number wanted
-num_of_sims = 1000
-num_of_years = [50]
-d={}
+# Create a dictionary to store the total invasions for the probability of firewood transportation and time to first transportation of firewood in years
+total_invas={}
+# Iterate through each set to measure the number of each moved in each set.
 for year in num_of_years:
+    #create two dataframes one that measures if a single piece of wood is transported to the destination
     invas_prob = pd.DataFrame(index=G.nodes)
     invas_time = pd.DataFrame(index=G.nodes)
+    invas_propagule = pd.DataFrame(index=G.nodes)
 
     for i in range(num_of_sims):#1000 repeats
         print('Completed', i, 'Simulations out of', num_of_sims)
+        
         #Define the class and the variables inital state and state transition are described above as 
         Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
         #run the simulation
@@ -178,15 +196,14 @@ for year in num_of_years:
     invas_prob = invas_prob.fillna(0)
     sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
     invas_time = invas_time.fillna(0)
-#%%
     invas_time = invas_time.replace(0,51)
     sum_invas_time_df = invas_time.transpose().describe().transpose()
-    d[year] = [sum_invas_prob_df, sum_invas_time_df]
+    total_invas[year] = [sum_invas_prob_df, sum_invas_time_df]
 #%%
 os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
 df= pd.DataFrame()
-for k,v in d.items():
+for k,v in total_invas.items():
     #for dataframe in interval:
     df[k] = v[0]['mean']
 df_coord = df.join(pd.DataFrame.from_dict(dict_pos,orient ='index')).rename(columns = {0:'lat', 1:'long'})
@@ -195,7 +212,7 @@ filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+'
 df_coord.to_csv(filename)
 
 df2 = pd.DataFrame()
-for k,v in d.items():
+for k,v in total_invas.items():
     #for dataframe in interval:
     df2[k] = v[1]['mean']
 df_coord = df2.join(pd.DataFrame.from_dict(dict_pos,orient ='index')).rename(columns = {0:'lat', 1:'long'})

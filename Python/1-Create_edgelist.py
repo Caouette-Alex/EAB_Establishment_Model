@@ -4,13 +4,17 @@ Created on Thu Oct 14 09:58:54 2021
 
 @author: alexp
 
-Clean data and create an edgelist
+Take information from campgrounds and cities in the maritimes and create an edgelist of origin and destinations including city->city and city->campground
+This involves cleaning the data by removing nan rows and keeping only columns that we are interested in
+We create two dataframes of city to city and of city to campground (edge between each connection) 
+The dataframe is then merged into one dataframe containing both city->camp edges and city->camp edges
+
 """
 
 import pandas as pd
 import os
 
-
+#change 
 os.chdir('\..')
 os.chdir("Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/")
 

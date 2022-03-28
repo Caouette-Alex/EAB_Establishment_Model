@@ -10,7 +10,7 @@ import pandas as pd
 os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
 
-df = pd.read_csv('Sim_2022-03-14_1000_Mean_invasion_probability_per_year',index_col=0)
+df = pd.read_csv('Sim_2022-03-28_1000_Mean_invasion_probability_per_year',index_col=0)
 
 
 from mpl_toolkits.basemap import Basemap
