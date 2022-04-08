@@ -44,6 +44,8 @@ nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['type'])
 
 #%% Define the initial state of infested locations from non-infested ones and define what happens in the following year
 #initial state defines cities that are infested, this is a fixed set of locations: Edmundston, Halifax, Fredericton, Oromocto, and Moncton
+prpgl_pres = pd.DataFrame(index = G.nodes)
+
 def initial_state(G):
     state = {}
     for node in G.nodes:
@@ -63,6 +65,7 @@ def initial_state(G):
     return state
 # State transition defines area's that transition from susceptible to infested in a year. 
 def state_transition(G, current_state):
+    d_1 = {}
     import random
     #The first generalization is that a majority of campground visits involve relatively short travel distances (<100 km, which is usually a <2-h drive from home) Koch et al. 2012 
     next_state={}
@@ -142,10 +145,14 @@ def state_transition(G, current_state):
     for node in G.nodes:
         if current_state[node] == 'S':
             for node,count in d.items():
+                d_1[node] = count
                 if count >1: 
                     next_state[node] = 'I'
-                  
+    global prpgl_pres
+    # TODO s 
+    # prpgl_pres[Sim._step()] = pd.Series(d_1)
     return next_state
+
 #%% For testing purposes
 #Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
 ##run the simulation
@@ -163,7 +170,7 @@ start = time.process_time()
 #Run the simulation
 #   specify the number of interations that you want to where num_of_sims is the number of iterations of the simulation that you want to run normal amount is 1000
 #   Specify the number of years that you want to test in a list like format [5,10,20] = Runs model for 5 years, 10 years, and 20 years
-num_of_sims = 50
+num_of_sims = 5
 num_of_years = [5,10,20]
 
 # Create a dictionary to store the total invasions for the probability of firewood transportation and time to first transportation of firewood in years
@@ -182,6 +189,7 @@ for year in num_of_years:
         Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
         #run the simulation
         Sim.run(year)
+        
         #Draw the network at each interval of nth steps()
         #Sim.draw()
         #plt.show()
@@ -199,6 +207,7 @@ for year in num_of_years:
     invas_time = invas_time.replace(0,51)
     sum_invas_time_df = invas_time.transpose().describe().transpose()
     total_invas[year] = [sum_invas_prob_df, sum_invas_time_df]
+    
 #%%
 os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')

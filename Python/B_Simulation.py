@@ -57,7 +57,7 @@ class Simulation:
         if stop_condition and not callable(stop_condition):
             raise TypeError("'stop_condition' should be a function")
         self.name = name or 'Simulation'
-         
+        
         self._states = []
         self._value_index = {}
         from matplotlib.colors import LinearSegmentedColormap
@@ -66,6 +66,7 @@ class Simulation:
         self._cmap = plt.cm.get_cmap(cmap)
         self._time_invas = {}
         self._prob_invas = {}
+        #self._propagule_pres = 
         self._initialize()
         #self._intro_time = pd.DataFrame(index=self.G)
 
