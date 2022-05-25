@@ -3,66 +3,96 @@
 Created on Fri May 20 10:45:42 2022
 
 @author: alexp
+
+This code is meant to find the correlation and model the relationship between the population size of a location based on the population size. 
+
+To do this, We upload data from Arcmap using the Tourism, Heritage, and Culture of New Brunswick campground reservation data, we then seperate the locations by year
+
+For each year from 2015-2020 we join it to the shapefile of population centres from the gov of canada(https://www12.statcan.gc.ca/census-recensement/2011/geo/bound-limit/bound-limit-2016-eng.cfm) getting a count of the number of reservatiosn made for each campground in the area
+
+We then import all these files into and using a loop add all the files to separate dataframes
+
+I then get the mean number of reservations/year based on the population of the population centre
+
+Calculate the pearsons correlation between population and the number of reservations made to a campground
+
+Using this measurement we found a correlation of -.840 and calculated the linear regresssion of the relationship. 
+
+
+
 """
 
 import pandas as pd
-
 import os
-
 from matplotlib import pyplot as plt
 
 os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model')
-list = [2015, 2016,2017, 2018, 2019, 2020]
+
+
+###
+# Get the dataframe set up  
+###
+
+list = [2015, 2016, 2017, 2018, 2019, 2020]
+
 city_df = pd.read_csv('Coding/Camping_data/Cities_Master_2021-12-07.csv').sort_values(by='Geographic_Name').reset_index()
+
 l=[]
-d={}
+
+#Loop through the files to read the excel files and merge them so that there was population data added to it then add them to the list l
+
 for year in list:
     name = 'df_'+ str(year)
     file = 'Arcmap/Camping_reservations/' + str(year) +'_pop_cent_reserv.xls'
     pd_file = pd.read_excel(file)
     merge_df = pd.merge(city_df, pd_file,left_on='Geographic_Name',right_on=('PCNAME'))
-    merge_df = merge_df[merge_df['Province'] == 'NB']#Arcmap.set_index('PCNAME')  
-    d[name] = merge_df    
+    merge_df = merge_df[merge_df['Province'] == 'NB']#Arcmap.set_index('PCNAME')      
     l.append(merge_df)
-    
+
+
+#add together all the dataframes from all the years and get the mean number of reservations for each city
 df = pd.concat(l).groupby(level=0).mean()
 
-df.plot('Population', 'Count_', kind='scatter')
+#Get the number mean number of reservations per campground per year 
+df['per_camp_reserv'] = (df['Count_']/9)
 
+#plot as a scatterplot the number of reservation per year 
+df.plot('Population', 'per_camp_reserv', kind='scatter')
 
-#%%
-x=df['Population']
-y= df['Count_']
+###
+# Measure the pearson correlation coefficient between the population and the number of reservations made to a single campground
+###
 
+x = df['Population']
+y = df['per_camp_reserv']
+
+#measure the correlation
 from scipy.stats import pearsonr
 corr, _ = pearsonr(x,y)
 print('Pearsons correlation: %.3f' % corr)
 
+###
+# Measure the linear regression of the relationship between the number of reservations made to a single campground
+###
 
-#%%
-df_ = pd.read_excel('Arcmap/Camping_reservations/2015_pop_cent_reserv.xls')
-df_2016 = pd.read_excel('Arcmap/Camping_reservations/2016_pop_cent_reserv.xls')
-df_2017 = pd.read_excel('Arcmap/Camping_reservations/2017_pop_cent_reserv.xls')
-df_2018 = pd.read_excel('Arcmap/Camping_reservations/2018_pop_cent_reserv.xls')
-df_2019 = pd.read_excel('Arcmap/Camping_reservations/2019_pop_cent_reserv.xls')
-df_2020 = pd.read_excel('Arcmap/Camping_reservations/2020_pop_cent_reserv.xls')
+from sklearn.linear_model import LinearRegression
 
-import numpy as np
-fig, ax = plt.subplots(1,5,figsize=(30,5))
-
-def label_point(x, y, val, ax):
-    a = pd.concat({'x': x, 'y': y, 'val': val}, axis=1)
-    for i, point in a.iterrows():
-        ax.text(point['x'], point['y'], str(point['val']))
+#Convert these values into a numpy matrix 
+x = df[['Population']].to_numpy()
+y = df[['per_camp_reserv']].to_numpy()
 
 
-df_2015.plot('Time', 'Total_Leng', kind='scatter', ax=ax[0])
-label_point(tor_df.Time, tor_df.Total_Leng, tor_df.PCNAME, ax[0])
+# Create a model for the linear regression 
+model = LinearRegression()
+#find the line of best fit
+model.fit(x,y)
+model = LinearRegression().fit(x,y)
 
-mont_df.plot('Time', 'Total_Leng', kind='scatter', ax=ax[1])
-label_point(mont_df.Time, mont_df.Total_Leng, mont_df.PCNAME, ax[1])
+r_sq = model.score(x,y)
+print('coefficient of determination:', r_sq)
+itrcpt = model.intercept_
 
-ott_df.plot('Time', 'Total_Leng', kind='scatter', ax=ax[2])
-label_point(ott_df.Time, ott_df.Total_Leng, ott_df.PCNAME, ax[2])
-#%%
+slp = model.coef_
+
+print('y=',str(slp)[2:-2],'x+',str(itrcpt)[1:-1])
