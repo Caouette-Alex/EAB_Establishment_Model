@@ -57,7 +57,7 @@ def state_transition(G, current_state):
         if current_state[node] == 'I':
             
             #number of infected campers from Origins
-            nx.set_node_attributes(G,{node:G.nodes[node]['Population']*(per_capita_value*prob_infested_wood)},'Infected_camper')
+            nx.set_node_attributes(G,{node:G.nodes[node]['Population']*0.0016729+6.24567023*prob_infested_wood},'Infected_camper')
             Inf_camper = nx.get_node_attributes(G,'Infected_camper')
             
             #Get total campground pull from all neighbour nodes

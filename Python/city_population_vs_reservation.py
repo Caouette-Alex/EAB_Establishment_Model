@@ -3,6 +3,8 @@
 Created on Thu May 19 17:08:14 2022
 
 @author: alexp
+
+Deprecated dont use
 """
 
 import pandas as pd
