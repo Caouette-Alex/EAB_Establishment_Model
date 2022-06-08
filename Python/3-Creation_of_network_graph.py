@@ -140,35 +140,57 @@ def state_transition(G, current_state):
 ###
 #Distribute infected firewood based on movement of people across cities 
 ###
-    #this loop gets the total pull from all the cities in the 
+    #this loop gets the total pull from all the cities in the in the list from Origin degree cities to a single 
     total = {}
     for k, v in origin_degree_city.items():
         for k2, v2 in v.items():
             total[k2] = total.get(k2, 0) + v2
             
-    for i in list(total):
-        if i in inf_city:
-            del total[i]
-
-    infected.append(random.choices(list(total.keys()), weights=list(total.values()), k=1))
+    for node in G.nodes:
+        if G.nodes[node]['Type'] == 'city_to_city':
+            if current_state[node] == 'I':
+                del total[node]
+    if total:
+        infected.append(random.choices(list(total.keys()), weights=list(total.values()), k=1))
     #iterate through the dictionary of uninfested cities(k) and the 
-    for k, v in origin_degree_city.items():
-        infected.append(random.choices(list(v.keys()), weights=list(v.values()), k=1))
+    #for k, v in origin_degree_city.items():
+        #infected.append(random.choices(list(v.keys()), weights=list(v.values()), k=1))
         #turn a list of lists into a simple list, by removing extra brackets(flatten list)
     infected_flat=[val for subgroup in infected for val in subgroup]
     infected_flat.sort()  
     d = {x:infected_flat.count(x) for x in infected_flat}
     
     ###
-    #
+    #Changing the state of campground +
     ###
-    num_count = 2
+    #num_count = 2
+    #for node in G.nodes:
+        #if G.nodes[node]['Type'] == 'city_to_camp':
+            #if current_state[node] == 'S':
+                #for node,count in d.items():
+                    #d_1[node] = count
+                    #if count >num_count: 
+                        #next_state[node] = 'I'
+        #else:
+            #if current_state[node] == 'S':
+                #for node,count in d.items():
+                   # d_1[node] = count
+                    #if count >1: 
+                        #next_state[node] = 'I'
+    num_count = 1
     for node in G.nodes:
-        if current_state[node] == 'S':
-            for node,count in d.items():
-                d_1[node] = count
-                if count >num_count: 
-                    next_state[node] = 'I'
+        if G.nodes[node]['Type'] == 'city_to_camp':
+            if current_state[node] == 'S':
+                if node in d.keys():
+                    if d[node] >= num_count:
+                        next_state[node] = 'I'
+        elif G.nodes[node]['Type'] == 'city_to_city':
+            if current_state[node] == 'S':
+                if node in d.keys():
+                    if d[node] >=1: 
+                        next_state[node] = 'I'
+    
+    
     global prpgl_pres
     # TODO s 
     # prpgl_pres[Sim._step()] = pd.Series(d_1)
@@ -189,7 +211,7 @@ start = time.process_time()
 #   specify the number of interations that you want to where num_of_sims is the number of iterations of the simulation that you want to run normal amount is 1000
 #   Specify the number of years that you want to test in a list like format [5,10,20] = Runs model for 5 years, 10 years, and 20 years
 num_of_sims = 1000
-num_of_years = [5,10]
+num_of_years = [50]
 
 # Create a dictionary to store the total invasions for the probability of firewood transportation and time to first transportation of firewood in years
 total_invas={}
@@ -211,6 +233,7 @@ for year in num_of_years:
         #Draw the network at each interval of nth steps()
         #Sim.draw()
         #plt.show()
+        
         #Draw the proportions of infested nodes vs. susceptible nodes from time 0 to nth steps()
         Sim.plot()
         plt.show()
@@ -240,7 +263,7 @@ os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
 
 from datetime import datetime
-path = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+ str(num_of_years)+'invas_bundle_2.xlsx'
+path = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+ str(num_of_years)+'invas_bundle_1.xls'
 
 writer = pd.ExcelWriter(path, engine='xlsxwriter')
 

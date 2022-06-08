@@ -96,3 +96,4 @@ itrcpt = model.intercept_
 slp = model.coef_
 
 print('y=',str(slp)[2:-2],'x+',str(itrcpt)[1:-1])
+plt.plot(x, slp*x+itrcpt)

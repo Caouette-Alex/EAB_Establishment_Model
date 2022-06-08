@@ -263,21 +263,26 @@ class Simulation:
         Returns:
             Axes object for the current plot
         '''
+        import numpy as np
         x_range = range(min_step or 0, max_step or len(self._states))
         counts = [Counter(s.values()) for s in self._states[min_step:max_step]]
         if labels is None:
             labels = {k for count in counts for k in count}
             labels = sorted(labels, key=self._value_index.get)
-
+        
+        plt.figure(figsize=(15,10))
+        
         for label in labels:
             series = [count.get(label, 0) / sum(count.values()) for count in counts]
             plt.plot(x_range, series, label=label, **kwargs)
-
+    
+        
         title = 'node state proportions'
         if self.name:
             title = '{}: {}'.format(self.name, title)
         plt.title(title)
         plt.xlabel('Simulation step')
+        plt.xticks(np.arange(min(x_range), max(x_range)+1, 1.0))
         plt.ylabel('Proportion of nodes')
         plt.legend()
         plt.xlim(x_range.start)
