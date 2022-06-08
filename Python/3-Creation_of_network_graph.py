@@ -48,16 +48,9 @@ prpgl_pres = pd.DataFrame(index = G.nodes)
 
 def initial_state(G):
     state = {}
+    inf_cities = 'Edmundston','Halifax', 'Fredericton', 'Moncton', 'Oromocto'
     for node in G.nodes:
-        if node == 'Edmundston':
-            state[node] = 'I'
-        elif node == 'Halifax':
-            state[node] = 'I'
-        elif node == 'Fredericton':
-            state[node] = 'I'
-        elif node == 'Moncton':
-            state[node] = 'I'
-        elif node == 'Oromocto':
+        if node in inf_cities:
             state[node] = 'I'
         else:
             state[node] = 'S'
@@ -75,16 +68,21 @@ def state_transition(G, current_state):
     num_inf_camper={}
     #Per capita value is a source of number of reservations taken from a national system 
     per_capita_value=0.0047
+    
     #Firewood source(0.66 of campers bring their own firewood, of that the source is that outside park:0.25, from home:0.17,cut of collected from another area:0.14)Jacobi et al. 2011, and and incident that wood has live insects in it (percent wood fraxinus:0.1455, percent with live borers:0.34)  Haack et al. 2010
     prob_infested_wood=(0.66)*(0.25+0.17+0.14)*(0.1455*0.34)
     #Iterate through each node splitting the two by infected and uninfected nodes 
+    inf_city=[]
     for node in G.nodes:
         #if the node is infected, print the number of campers leaving the campground with infested wood/year(per capita value) is calculated, and calculate the total campground pull value from all campgrounds(in degree)
         if current_state[node] == 'I':
+            
             # Only cities that are infected can move EAB to different places
             if G.nodes[node]['Type'] == 'city_to_city':
+                inf_city.append(node)
                 #number of infected campers from Origin location
-                nx.set_node_attributes(G,{node:((G.nodes[node]['Population']*0.0016729+6.24567023)*prob_infested_wood)},'Infected_camper')
+                nx.set_node_attributes(G,{node:(((G.nodes[node]['Population']*0.0016729+6.24567023)*0.85*(0.3333*210)+(G.nodes[node]['Population']*0.0016729+6.24567023)*0.15*(0.6666*210))*prob_infested_wood)},'Infected_camper')
+                #nx.set_node_attributes(G,{node:(G.nodes[node]['Population']*per_capita_value*prob_infested_wood)},'Infected_camper')
                 Inf_camper = nx.get_node_attributes(G,'Infected_camper')
                 
                 #Get total campground attractance from all neighbour nodes
@@ -123,26 +121,36 @@ def state_transition(G, current_state):
                         node_degree_city[neighbor]=pull
                         origin_degree_city[node]=node_degree_city          
        
-    ###  
-    #Distribute infected campers to campgrounds based on gravity values
-    ###                  
-    #create a list containing the names of locations that become infected
-    
+###  
+#Distribute infected campers to campgrounds based on gravity values
+###                  
+    #create a list containing the names of locations that become infected    
     infected=[]
     
     # distribute campers randomly (number of campers using k values) going from origin to a susceptible campground
     for k, v in origin_degree_camp.items():
         #print(num_inf_camper)
+        #randomly select campgrounds(v.keys) based on the pull value that each one has(weight) using the number of campers leaving the city with infested firewood
         infected.append(random.choices(list(v.keys()), weights=list(v.values()), k=num_inf_camper[k]))
         #turn a list of lists into a simple list, by removing extra brackets(flatten list)
     infected_flat=[val for subgroup in infected for val in subgroup]
     infected_flat.sort()  
     d = {x:infected_flat.count(x) for x in infected_flat}
     
-    ###
-    #Distribute infected firewood based on movement of people across cities 
-    ###
-    
+###
+#Distribute infected firewood based on movement of people across cities 
+###
+    #this loop gets the total pull from all the cities in the 
+    total = {}
+    for k, v in origin_degree_city.items():
+        for k2, v2 in v.items():
+            total[k2] = total.get(k2, 0) + v2
+            
+    for i in list(total):
+        if i in inf_city:
+            del total[i]
+
+    infected.append(random.choices(list(total.keys()), weights=list(total.values()), k=1))
     #iterate through the dictionary of uninfested cities(k) and the 
     for k, v in origin_degree_city.items():
         infected.append(random.choices(list(v.keys()), weights=list(v.values()), k=1))
@@ -154,17 +162,134 @@ def state_transition(G, current_state):
     ###
     #
     ###
-    
+    num_count = 2
     for node in G.nodes:
         if current_state[node] == 'S':
             for node,count in d.items():
                 d_1[node] = count
-                if count >1: 
+                if count >num_count: 
                     next_state[node] = 'I'
     global prpgl_pres
     # TODO s 
     # prpgl_pres[Sim._step()] = pd.Series(d_1)
     return next_state
+
+
+
+
+#%% Run simulations 
+import numpy as np
+import matplotlib.pyplot as plt
+import time
+
+
+start = time.process_time()
+
+#Run the simulation
+#   specify the number of interations that you want to where num_of_sims is the number of iterations of the simulation that you want to run normal amount is 1000
+#   Specify the number of years that you want to test in a list like format [5,10,20] = Runs model for 5 years, 10 years, and 20 years
+num_of_sims = 1000
+num_of_years = [5,10]
+
+# Create a dictionary to store the total invasions for the probability of firewood transportation and time to first transportation of firewood in years
+total_invas={}
+# Iterate through each set to measure the number of each moved in each set.
+for year in num_of_years:
+    #create two dataframes one that measures if a single piece of wood is transported to the destination
+    invas_prob = pd.DataFrame(index=G.nodes)
+    invas_time = pd.DataFrame(index=G.nodes)
+    invas_propagule = pd.DataFrame(index=G.nodes)
+
+    for i in range(num_of_sims):#1000 repeats
+        print('Completed', i, 'Simulations out of', num_of_sims)
+        
+        #Define the class and the variables inital state and state transition are described above as 
+        Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
+        #run the simulation
+        Sim.run(year)
+        
+        #Draw the network at each interval of nth steps()
+        #Sim.draw()
+        #plt.show()
+        #Draw the proportions of infested nodes vs. susceptible nodes from time 0 to nth steps()
+        Sim.plot()
+        plt.show()
+        #Show the time to invasion for each city
+        Sim.invasion_time()
+        #Append each simulation time to invasion as a column in a dataframe
+        invas_time[i] = invas_time.index.map(Sim._time_invas)
+        invas_prob[i] = invas_prob.index.map(Sim._prob_invas)
+    invas_prob = invas_prob.fillna(0)
+    sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
+    sum_invas_time_df = invas_time.transpose().describe().transpose()
+    total_invas[year] = {'invas_prob':invas_prob,'sum_invas_prob_df':sum_invas_prob_df,'invas_prob':invas_prob,'sum_invas_time_df':sum_invas_time_df}
+print(time.process_time() - start)
+#%%
+from datetime import datetime
+os.chdir('\..')
+os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
+filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+'_Mean_invasion_year'
+sum_invas_time_df.to_csv(filename)
+
+
+#%%
+"""Write dictionary of dataframes to separate sheets, within 
+    1 file."""
+    
+os.chdir('\..')
+os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
+
+from datetime import datetime
+path = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+ str(num_of_years)+'invas_bundle_2.xlsx'
+
+writer = pd.ExcelWriter(path, engine='xlsxwriter')
+
+for k,v in total_invas.items():
+    for key,dframe in v.items():
+        dframe.to_excel(writer, sheet_name=(str(k)+key))
+
+writer.save()
+#%%
+
+os.chdir('\..')
+os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
+df= pd.DataFrame()
+for k,v in total_invas.items():
+    #for dataframe in interval:
+    df[k] = v[0]['mean']
+df_coord = df.join(pd.DataFrame.from_dict(dict_pos,orient ='index')).rename(columns = {0:'lat', 1:'long'})
+from datetime import datetime
+filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+'_Mean_invasion_probability_per_year'
+df_coord.to_csv(filename)
+
+df2 = pd.DataFrame()
+for k,v in total_invas.items():
+    #for dataframe in interval:
+    df2[k] = v[1]['mean']
+df_coord = df2.join(pd.DataFrame.from_dict(dict_pos,orient ='index')).rename(columns = {0:'lat', 1:'long'})
+
+filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+'_Mean_invasion_year'
+df_coord.to_csv(filename)
+#save data to CSV file using the following format Sim_YYYY_MM_DD_####(number of simulations)
+
+
+filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)
+invas_time.to_csv(filename)
+
+print(time.process_time() - start)
+
+
+#%%Test the initial state and state transition functions without running the simulation
+#current_state = (initial_state(G))
+#print(state_transition(G, current_state))
+
+from datetime import datetime
+filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d') + str(num_of_sims) +'_invasion_time_'
+invas_time.to_csv(filename)
+
+from datetime import datetime
+filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d') + str(num_of_sims)
+invas_time.to_csv(filename)
 
 #%% For testing purposes
 Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
@@ -199,7 +324,7 @@ for node in G.nodes:
         # Only cities that are infected can move EAB to different places
         if G.nodes[node]['Type'] == 'city_to_city':
             #number of infected campers from Origin location
-            nx.set_node_attributes(G,{node:((G.nodes[node]['Population']*0.0016729+6.24567023)*prob_infested_wood)},'Infected_camper')
+            nx.set_node_attributes(G,{node:((G.nodes[node]['Population']*0.0016729+6.24567023)*210*prob_infested_wood)},'Infected_camper')
             Inf_camper = nx.get_node_attributes(G,'Infected_camper')
             
             #Get total campground attractance from all neighbour nodes
@@ -238,6 +363,9 @@ for node in G.nodes:
    
 infected=[]
 
+
+for k, v in origin_degree_camp.items():
+    print(k, num_inf_camper[k])
 #
 for k, v in origin_degree_city.items():
     infected.append(random.choices(list(v.keys()), weights=list(v.values()), k=1))
@@ -247,7 +375,6 @@ infected_flat.sort()
 d = {x:infected_flat.count(x) for x in infected_flat}
 
 print(d)
-
 #%%prob_infested_wood=0.66*(0.25+0.17+0.14)*(0.1455*0.34)
 
 l= []
@@ -260,91 +387,6 @@ for node in G.nodes:
     else:
         print(node)
         
-
-#%% Run simulations 
-import numpy as np
-import matplotlib.pyplot as plt
-import time
-
-
-start = time.process_time()
-
-#Run the simulation
-#   specify the number of interations that you want to where num_of_sims is the number of iterations of the simulation that you want to run normal amount is 1000
-#   Specify the number of years that you want to test in a list like format [5,10,20] = Runs model for 5 years, 10 years, and 20 years
-num_of_sims = 1000
-num_of_years = [20]
-
-# Create a dictionary to store the total invasions for the probability of firewood transportation and time to first transportation of firewood in years
-total_invas={}
-# Iterate through each set to measure the number of each moved in each set.
-for year in num_of_years:
-    #create two dataframes one that measures if a single piece of wood is transported to the destination
-    invas_prob = pd.DataFrame(index=G.nodes)
-    invas_time = pd.DataFrame(index=G.nodes)
-    invas_propagule = pd.DataFrame(index=G.nodes)
-
-    for i in range(num_of_sims):#1000 repeats
-        print('Completed', i, 'Simulations out of', num_of_sims)
-        
-        #Define the class and the variables inital state and state transition are described above as 
-        Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
-        #run the simulation
-        Sim.run(year)
-        
-        #Draw the network at each interval of nth steps()
-        #Sim.draw()
-        #plt.show()
-        #Draw the proportions of infested nodes vs. susceptible nodes from time 0 to nth steps()
-        Sim.plot()
-        plt.show()
-        #Show the time to invasion for each city
-        Sim.invasion_time()
-        #Append each simulation time to invasion as a column in a dataframe
-        invas_time[i] = invas_time.index.map(Sim._time_invas)
-        invas_prob[i] = invas_prob.index.map(Sim._prob_invas)
-    invas_prob = invas_prob.fillna(0)
-    sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
-    invas_time = invas_time.fillna(0)
-    invas_time = invas_time.replace(0,51)
-    sum_invas_time_df = invas_time.transpose().describe().transpose()
-    total_invas[year] = [sum_invas_prob_df, sum_invas_time_df]
-    
-#%%
-os.chdir('\..')
-os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
-df= pd.DataFrame()
-for k,v in total_invas.items():
-    #for dataframe in interval:
-    df[k] = v[0]['mean']
-df_coord = df.join(pd.DataFrame.from_dict(dict_pos,orient ='index')).rename(columns = {0:'lat', 1:'long'})
-from datetime import datetime
-filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+'_Mean_invasion_probability_per_year'
-df_coord.to_csv(filename)
-
-df2 = pd.DataFrame()
-for k,v in total_invas.items():
-    #for dataframe in interval:
-    df2[k] = v[1]['mean']
-df_coord = df2.join(pd.DataFrame.from_dict(dict_pos,orient ='index')).rename(columns = {0:'lat', 1:'long'})
-
-filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+'_Mean_invasion_year'
-df_coord.to_csv(filename)
-#save data to CSV file using the following format Sim_YYYY_MM_DD_####(number of simulations)
-
-
-filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)
-invas_time.to_csv(filename)
-print(time.process_time() - start)
-
-
-#%%Test the initial state and state transition functions without running the simulation
-#current_state = (initial_state(G))
-#print(state_transition(G, current_state))
-
-from datetime import datetime
-filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d') + str(num_of_sims)
-invas_time.to_csv(filename)
 #%%
 Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
 from matplotlib import pyplot as plt
