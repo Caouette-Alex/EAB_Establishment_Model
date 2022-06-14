@@ -15,7 +15,7 @@ This file is meant to plot the mean probability of infestation of a location bas
 import pandas as pd
 import os
 from matplotlib import pyplot as plt
-
+import seaborn as sns
 ###
 # Change the directory so that we are working out of EAB_Model
 ###
@@ -28,6 +28,8 @@ os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Mo
 ###
 
 d={}
+prop_mean= pd.DataFrame()
+prop_std= pd.DataFrame()
 # The range starts at one and uses the n+1 number of files that you have. 
 for i in range(1,22):
     #the name of each df is the establishment threshold or the number of wood bundles required before population establishes
@@ -42,28 +44,66 @@ for i in range(1,22):
     df['mean_prop'] = (df['mean']/238)*100
     # Create a dictionary of dataframes
     d[name]= df
+    prop_mean[name] = (df['mean']/238)*100
+    prop_std[name] = df['std']
+
+prop_mean_df = prop_mean.stack().reset_index()
+prop_mean_df.columns = ['year','establishment_threshold','proportion_established']
+prop_mean_wide = prop_mean_df.pivot('year','establishment_threshold','proportion_established')
+
+#stack files to convert from a matrix to a longform data file
+prop_std_df = prop_std.stack().reset_index()
+prop_std_df.columns = ['year','establishment_threshold','proportion_established_std']
+
+
+prop_mean_df = pd.merge(prop_mean_df,prop_std_df,  how='left', left_on=['year','establishment_threshold'], right_on = ['year','establishment_threshold'])
+#%%Matplotlib prop campgrounds infested
 
 ###
-#Create figure of the proportion of campgrounds with EAB establishments
+#Create figure of the proportion of campgrounds with EAB establishments Using Matplotlib
 ###
     
 ax = plt.subplot(111)
 
 # run a loop adding a colour for each establishment threshold of wood bundles
 for k,v in d.items():
-    ax.bar(v.index, v['mean_prop'], label = k )
+    #ax.bar(v.index, v['mean_prop'], label = k )
+    ax.plot(v.index, v['mean_prop'], label = k)
 #plt.legend(ncol=1,fontsize=1, bbox_to_anchor=(1.08,1),title='Establishment threshold (pieces wood)')
 ax.set_xlim([0, 50.5])
 #create a legend
-legend = ax.legend(loc=0, ncol=1,fontsize = 'xx-small', bbox_to_anchor=( 1.08, 1),fancybox=True,shadow=False,
-                   title='Establishment threshold (pieces wood)')
+legend = ax.legend(loc=4, ncol=4,fontsize = 'xx-small',fancybox=True,shadow=False,
+                   title='Establishment threshold (inf. pieces/year)')#bbox_to_anchor=( 1.08, 1)
 #set the legend title fontsize
 plt.setp(legend.get_title(),fontsize='xx-small')
 plt.xlabel('Years')
-plt.ylabel('Proportion of locations with established populations of EAB ')
-#plt.savefig('Model_results/Probability_of EAB_establishment_year.png', dpi=300)
+plt.ylabel('Locations with established populations of EAB(%)')
+plt.savefig('Model_results/Proportion_of_EAB_establishment_year.png', dpi=300)
 plt.show()
+#%%Seaborn proportion of EAB infested
 
+###
+#Create figure of the proportion of campgrounds with EAB establishments using SeaBorn
+###
+
+sns.set_theme()
+
+ax = sns.lineplot(data=prop_mean_df, x ='year', y= 'proportion_established', hue = 'establishment_threshold',palette="Spectral")
+ax.legend(title = 'Establishment threshold (# inf. pieces/year)',title_fontsize= 'xx-small',loc= 4,ncol = 5, fontsize = 'xx-small' )
+ax.set_ylabel('Location with established pop. of EAB (%)')
+ax.set_xlabel('Year')
+
+plt.savefig('Model_results/Proportion_of_EAB_establishment_year_seaborn.png', dpi=300)
+
+plt.show()
+#%%Proportion of locations with EAB establishment based on the threshold 
+sns.set_theme()
+prop_mean_10 = prop_mean_df[prop_mean_df['year'] == 10]
+
+ax = sns.barplot(data=prop_mean_10, x ='establishment_threshold', y= 'proportion_established',palette="Spectral", yerr=prop_mean_10['proportion_established_std'])
+
+ax2 = sns.lineplot(data=prop_mean_10, x ='establishment_threshold', y= 'proportion_established')
+#%%
 ###
 #Create figure of the proportion of locations with established populations of emerald ash borer based on the
 #establishment threshold of number of bundles of infested firewood needed before emerald ash borer establishes in a location
@@ -74,8 +114,9 @@ plt.title('10 years establishment probability based on number of transported woo
 for k,v in d.items():
     ax.bar(k, v['mean_prop'][10], label = k)#,color = 'c')
 #ax.legend(ncol=1,fontsize=4, loc = 1)
-plt.xlabel('Establishment threshold (bundles infested firewood)')
-plt.ylabel('Proportion of locations with established population of EAB',size= 8)
+plt.xlabel('Establishment threshold (inf. pieces/year)')
+plt.ylabel('Locations with established population of EAB(%)',size= 8)
+plt.savefig('Model_results/Proportion_of_EAB_establishment_at_10_years.png', dpi=300)
 plt.show()
 
 #%%Violin plot
@@ -83,11 +124,16 @@ plt.show()
 ###
 #Create a figure of violin plots that shows the mean establishment probability at 10 years
 ###
+cities = ['Antigonish', 'Amherst', 'Bathurst', 'Campbellton', 'Bridgewater', 'Cape Breton - Sydney', 'Charlottetown',
+          'Chatham - Douglastown', 'Enfield - Lantz', 'Edmundston', 'Fredericton', 'Glace Bay', 'Halifax', 'Kentville',
+          'Kingston - Greenwood', 'Moncton', 'New Glasgow', 'New Waterford', 'Oromocto', 'Quispamsis - Rothesay',
+          'Saint John','Shediac' , 'Summerside', 'Sydney Mines', 'Sussex', 'Truro', 'Windsor', 'Yarmouth','1e-14']
 l=[]
-df_mean_2 = pd.DataFrame()
+prob_mean = pd.DataFrame()
+df_test = pd.DataFrame()
 d2={}
 # The range starts at one and uses the n+1 number of files that you have. 
-for i in range(1,13):
+for i in range(1,21):
     #the name of each df is the establishment threshold or the number of wood bundles required before population establishes
     name = str(i)
     #read the excel file 
@@ -97,19 +143,30 @@ for i in range(1,13):
     #Describe the data including showing the mean, count of locations for each, etc.
     df2 = df2.transpose().describe().transpose()
     #create a column in the dataframe that is the proportion of campgrounds that with EAB establishements
-    df2 = df2.drop(['1e-14']) 
-    # Create a dictionary of dataframes
+    #Create a dictionary of dataframes
     d2[name]= df2
-    df_mean_2[name] = df2['mean'] 
+    prob_mean[name] = df2['mean'] 
     l.append(df2['mean'])
+prob_mean  = prob_mean.drop(cities) 
+test = prob_mean.stack().reset_index()
+test.columns = ['campground', 'establishment_threshold', 'establishment_probability']
+            
+
 df_mean = pd.DataFrame(l).transpose()
-
 #%%
+sns.set_theme()
 
-ax = plt.subplot(111)
-ax.violinplot(df_mean_2)
+ax = sns.violinplot( x=test['establishment_threshold'],y= test['establishment_probability'], width = 1)
 
 
+ax.set(ylim=(0, 1),xlabel='establishment threshold(inf. pieces/year)', ylabel='Probability of infestation(%)')
+sns.set(rc={'figure.figsize':(30,10)})
+#ax = plt.subplot(111)
+
+#ax.violinplot(df_mean_2)
+#plt.xticks(np.arange(1,14,1))
+
+plt.savefig('Model_results/violin_plot_probability_of_being_infested.png',dpi=300)
 
 
 plt.show()
