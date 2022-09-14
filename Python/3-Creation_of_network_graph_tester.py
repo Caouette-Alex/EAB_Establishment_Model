@@ -204,10 +204,26 @@ for node in G.nodes:
     if G.nodes[node]['Type'] == 'city_to_camp':
         if G.nodes[node]['current_state'] == 'S':
             if node in d.keys():
-                firewood_dispersal[node] = (random.choices(['1','2','3','4','5'], k=d[node]))
+                firewood_dispersal[node] = (random.choices(['1','2','3','4','5','6'],weights=[109.4,619.67,1521.83,1583.33,559,62], k=d[node]))
 
 for k,v in firewood_dispersal.items():
     firewood_dispersal[k] = dict(Counter(v))
+
+num_count = 25
+for node in G.nodes:
+    if G.nodes[node]['Type'] == 'city_to_camp':
+        if G.nodes[node]['current_state'] == 'S':
+            if node in firewood_dispersal.keys():
+                if dict((k, v) for k, v in firewood_dispersal[node].items() if v >= num_count):
+                    print(node, firewood_dispersal[node].values())
+                    #next_state[node] = 'I'
+    elif G.nodes[node]['Type'] == 'city_to_city':
+        if G.nodes[node]['current_state'] == 'S':
+            if node in d.keys():
+                #print(d[node])
+                if d[node] >=1: 
+                    #print(node)
+                    next_state[node] = 'I'
 
 #od = OrderedDict(sorted(firewood_dispersal.items()))
 

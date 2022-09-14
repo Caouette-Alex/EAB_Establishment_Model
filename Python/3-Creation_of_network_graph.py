@@ -164,20 +164,46 @@ def state_transition(G, current_state):
     #Changing the state of campground +
     ###
     
-    num_count = 2
+    #num_count = 2
+    #for node in G.nodes:
+        #if G.nodes[node]['Type'] == 'city_to_camp':
+            #if current_state[node] == 'S':
+                #if node in d.keys():
+                    #if d[node] >= num_count:
+                        #next_state[node] = 'I'
+        #elif G.nodes[node]['Type'] == 'city_to_city':
+            #if current_state[node] == 'S':
+                #if node in d.keys():
+                    #if d[node] >=1: 
+                        #next_state[node] = 'I'
+                        
+    firewood_dispersal = {}
     for node in G.nodes:
         if G.nodes[node]['Type'] == 'city_to_camp':
             if current_state[node] == 'S':
                 if node in d.keys():
-                    if d[node] >= num_count:
+                    firewood_dispersal[node] = (random.choices(['1','2','3','4','5','6'],weights=[109.4,619.67,1521.83,1583.33,559,62], k=d[node]))
+    
+    from collections import Counter
+    
+    for k,v in firewood_dispersal.items():
+        firewood_dispersal[k] = dict(Counter(v))
+
+    num_count = 10
+    for node in G.nodes:
+        if G.nodes[node]['Type'] == 'city_to_camp':
+            if current_state[node] == 'S':
+                if node in firewood_dispersal.keys():
+                    if dict((k, v) for k, v in firewood_dispersal[node].items() if v >= int_load):
+                        #print(node, firewood_dispersal[node].values())
                         next_state[node] = 'I'
         elif G.nodes[node]['Type'] == 'city_to_city':
             if current_state[node] == 'S':
                 if node in d.keys():
+                    #print(d[node])
                     if d[node] >=1: 
+                        #print(node)
                         next_state[node] = 'I'
-                        
-    
     #print(len(d.values()))
     
     
@@ -201,44 +227,48 @@ start = time.process_time()
 #Run the simulation
 #   specify the number of interations that you want to where num_of_sims is the number of iterations of the simulation that you want to run normal amount is 1000
 #   Specify the number of years that you want to test in a list like format [5,10,20] = Runs model for 5 years, 10 years, and 20 years
-num_of_sims = 1000
-num_of_years = [5,10] 
-
+num_of_sims = 10
+num_of_years = [5] 
+prog_pres = [1,10,25,50]
 # Create a dictionary to store the total invasions for the probability of firewood transportation and time to first transportation of firewood in years
 total_invas={}
-# Iterate through each set to measure the number of each moved in each set.
-for year in num_of_years:
-    prop_list=[]    
-    #create two dataframes one that measures if a single piece of wood is transported to the destination
-    invas_prob = pd.DataFrame(index=G.nodes)
-    invas_time = pd.DataFrame(index=G.nodes)
-    prop_infect = pd.DataFrame(index=range(1,year+1))
-    invas_propagule = pd.DataFrame(index=G.nodes)
 
-    for i in range(num_of_sims):#1000 repeats
-        print('Completed', i, 'Simulations out of', num_of_sims)
-        
-        #Define the class and the variables inital state and state transition are described above as 
-        Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
-        #run the simulation
-        Sim.run(year)
-        #Draw the network at each interval of nth steps()
-        #Sim.draw()
-        #plt.show()
-        
-        #Draw the proportions of infested nodes vs. susceptible nodes from time 0 to nth steps()
-        #Sim.plot()
-        #plt.show()
-        #Show the time to invasion for each city c
-        Sim.invasion_time()
-        #Append each simulation time to invasion as a column in a dataframe
-        invas_time[i] = invas_time.index.map(Sim._time_invas)
-        invas_prob[i] = invas_prob.index.map(Sim._prob_invas)
-        prop_infect[i] = prop_infect.index.map(Sim._prop_infect)
-    invas_prob = invas_prob.fillna(0)
-    sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
-    sum_invas_time_df = invas_time.transpose().describe().transpose()
-    total_invas[year] = {'invas_prob':invas_prob,'sum_invas_prob_df':sum_invas_prob_df,'invas_time':invas_time,'sum_invas_time_df':sum_invas_time_df,'prop_infect':prop_infect}
+for int_load in prog_pres:
+    print("propagule pressure required", int_load)
+    # Iterate through each set to measure the number of each moved in each set.
+    
+    for year in num_of_years:
+        prop_list=[]    
+        #create two dataframes one that measures if a single piece of wood is transported to the destination
+        invas_prob = pd.DataFrame(index=G.nodes)
+        invas_time = pd.DataFrame(index=G.nodes)
+        prop_infect = pd.DataFrame(index=range(1,year+1))
+        invas_propagule = pd.DataFrame(index=G.nodes)
+    
+        for i in range(num_of_sims):#1000 repeats
+            print('Completed', i, 'Simulations out of', num_of_sims)
+            
+            #Define the class and the variables inital state and state transition are described above as 
+            Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
+            #run the simulation
+            Sim.run(year)
+            #Draw the network at each interval of nth steps()
+            #Sim.draw()
+            #plt.show()
+            
+            #Draw the proportions of infested nodes vs. susceptible nodes from time 0 to nth steps()
+            #Sim.plot()
+            #plt.show()
+            #Show the time to invasion for each city c
+            Sim.invasion_time()
+            #Append each simulation time to invasion as a column in a dataframe
+            invas_time[i] = invas_time.index.map(Sim._time_invas)
+            invas_prob[i] = invas_prob.index.map(Sim._prob_invas)
+            prop_infect[i] = prop_infect.index.map(Sim._prop_infect)
+        invas_prob = invas_prob.fillna(0)
+        sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
+        sum_invas_time_df = invas_time.transpose().describe().transpose()
+        total_invas[year] = {'invas_prob':invas_prob,'sum_invas_prob_df':sum_invas_prob_df,'invas_time':invas_time,'sum_invas_time_df':sum_invas_time_df,'prop_infect':prop_infect}
 print(time.process_time() - start)
 
 #%%
