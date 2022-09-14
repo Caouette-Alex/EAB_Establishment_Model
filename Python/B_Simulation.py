@@ -64,6 +64,7 @@ class Simulation:
         #choose the colours for the colour map
         cmap = LinearSegmentedColormap.from_list('my_list',['#d62728','#6e8f6e'] , N=2)
         self._cmap = plt.cm.get_cmap(cmap)
+        self._prop_infect = {}
         self._time_invas = {}
         self._prob_invas = {}
         #self._propagule_pres = 
@@ -120,6 +121,7 @@ class Simulation:
         nx.set_node_attributes(self.G, state, 'state')
         self._append_state(state)
         
+        self._prop_infect[len(self._states)-1] = list(state.values()).count('I')
 
     def _categorical_color(self, value):
         index = self._value_index[value]
@@ -205,7 +207,7 @@ class Simulation:
         map.drawcoastlines()   
     
         state = self.state(step)
-      
+      #
         node_colors = [self._categorical_color(state[n]) for n in self.G.nodes]
         #nx.draw(self.G, pos=nx.get_node_attributes(self.G, 'pos'), node_color=node_colors, node_size=8, width=0.05, **kwargs)
         
@@ -222,7 +224,7 @@ class Simulation:
         if step == 0:
             title = 'initial state'
         else:
-            title = 'step %i' % (step)
+            title = 'year %i' % (step)
         if self.name:
             title = '{}: {}'.format(self.name, title)
         plt.title(title)
@@ -230,6 +232,10 @@ class Simulation:
         plt.show()
         return fig
     def animate(self, step= -1,**kwargs):
+        '''
+        Create a short animation that shows the invasion of a locaiton over one iteration
+        '''
+
         from matplotlib import pyplot as plt, animation
         state = self.state(step)
         plt.rcParams["figure.figsize"] = [7.50, 3.50]
@@ -245,6 +251,7 @@ class Simulation:
         ani = animation.FuncAnimation(fig, animate, frames=len(self._states) - 1, interval=1000, repeat=True)
 
         plt.show()
+
         
     def plot(self, min_step=None, max_step=None, labels=None, **kwargs):
         '''
@@ -307,3 +314,5 @@ class Simulation:
                 break
     def invasion_time(self):
         print(self._time_invas)
+    def proportion_infected(self):
+        print(self._proportion_infected)

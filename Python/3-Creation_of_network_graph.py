@@ -110,14 +110,14 @@ def state_transition(G, current_state):
                         node_degree_camp[neighbor]=pull
                         origin_degree_camp[node]=node_degree_camp
                     else : 
-                        P_i=G.nodes[neighbor]['Population']
+                        P_j=G.nodes[neighbor]['Population']
                         #Mean number of trips made from county A to county B
                         M_ij=G.edges[neighbor,node]['mean_trips_year']
                         D_ij=G.edges[neighbor,node]['Distance_Km']
                     
                         #Calculate attractance value(Pull) load them into a dictionary of dictionary for each infected node
                         #dict : origin_degree = {Origin(node):{Campground(neighbor): normalized_pull}}
-                        pull = (P_i*M_ij)
+                        pull = (P_j*M_ij)
                         node_degree_city[neighbor]=pull
                         origin_degree_city[node]=node_degree_city          
        
@@ -163,28 +163,13 @@ def state_transition(G, current_state):
     ###
     #Changing the state of campground +
     ###
-    #num_count = 2
-    #for node in G.nodes:
-        #if G.nodes[node]['Type'] == 'city_to_camp':
-            #if current_state[node] == 'S':
-                #for node,count in d.items():
-                    #d_1[node] = count
-                    #if count >num_count: 
-                        #next_state[node] = 'I'
-        #else:
-            #if current_state[node] == 'S':
-                #for node,count in d.items():
-                   # d_1[node] = count
-                    #if count >1: 
-                        #next_state[node] = 'I'
     
-    num_count = 12
+    num_count = 2
     for node in G.nodes:
         if G.nodes[node]['Type'] == 'city_to_camp':
             if current_state[node] == 'S':
                 if node in d.keys():
                     if d[node] >= num_count:
-                        
                         next_state[node] = 'I'
         elif G.nodes[node]['Type'] == 'city_to_city':
             if current_state[node] == 'S':

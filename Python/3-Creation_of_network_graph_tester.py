@@ -11,13 +11,14 @@ Here you can test new ways to implement code in the initial and state transition
 
 """
 
-
+|
 #%% Import packages and add edgelist dataframe
 import os
 os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding/Python')
 import pandas as pd
 import networkx as nx
+import math
 #imported from files from the book by filippo Menczer, Santo Fortunato, and Clayton Davies A first Course in Network Science
 from B_Simulation import Simulation
 
@@ -42,10 +43,6 @@ nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['type'])
 # TODO 
 
 
-
-#%%
-Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
-##run the simulation
 
 #%%l_test = ['Edmundston','Fredericton', 'Oromocto', 'Halifax', 'Moncton']
 
@@ -121,16 +118,40 @@ for node in G.nodes:
 #this loop gets the total pull from all the cities in the 
 infected=[]
 total = {}
+import numpy as np
+import timeit
+from numpy.random import rand
+start = timeit.default_timer()
+for k, v in origin_degree_camp.items():
+    #print(num_inf_camper)
+    #randomly select campgrounds(v.keys) based on the pull value that each one has(weight) using the number of campers leaving the city with infested firewood
+    #probs = np.random.rand(k); probs/=probs.sum()
+    #print([list(v.values())])
+    #for i in range(num_inf_camper[k]):
+        #weights = np.array([list(v.values())])
+        #cs = np.cumsum(weights)
+        #idx = sum(cs < rand())
+        #print(v.keys())
+    #print(num_inf_camper[k])
+    #infected.append(np.random.choice(list(v.keys()), p=list(v.values()), size=num_inf_camper[k]))
+    infected.append(random.choices(list(v.keys()), weights=list(v.values()), k=num_inf_camper[k]))
+    #turn a list of lists into a simple list, by removing extra brackets(flatten list)
+print(timeit.default_timer() - start)
+infected_flat=[val for subgroup in infected for val in subgroup]
+infected_flat.sort()  
+d = {x:infected_flat.count(x) for x in infected_flat}
+
+
 for k, v in origin_degree_city.items():
     for k2, v2 in v.items():
         total[k2] = total.get(k2, 0) + v2
         
 for node in G.nodes:
     if G.nodes[node]['current_state'] == 'I':
-        print(node)
         del total[node]
 
 infected.append(random.choices(list(total.keys()), weights=list(total.values()), k=1))
+
 #print(infected)
 #iterate through the dictionary of uninfested cities(k) and the 
 #for k, v in origin_degree_city.items():
@@ -140,7 +161,7 @@ infected_flat=[val for subgroup in infected for val in subgroup]
 infected_flat.sort()  
 d = {x:infected_flat.count(x) for x in infected_flat}
 
-print(d)
+
 
 ###
 #Changing the state of campground +
@@ -149,14 +170,50 @@ num_count = 2
 for node in G.nodes:
     if G.nodes[node]['Type'] == 'city_to_camp':
         if G.nodes[node]['current_state'] == 'S':
-            for node,count in d.items():
-                d_1[node] = count
-                if count >num_count: 
+            if node in d.keys():
+                if d[node] >= num_count:
+                    #print(node, d[node]) 
                     next_state[node] = 'I'
-    else:
+    elif G.nodes[node]['Type'] == 'city_to_city':
         if G.nodes[node]['current_state'] == 'S':
-            for node,count in d.items():
-                d_1[node] = count
-                if count >1: 
+            if node in d.keys():
+                #print(d[node])
+                if d[node] >=1: 
+                    #print(node)
                     next_state[node] = 'I'
+###
+# Creating a poisson distribution of the probability that a location has n number of pieces of firewood appearing in the same month
+###
+
+#this creates a dictionary with values that represent the likelihood that two pieces of firewood will show up in the same month
+poisson_dict = {}
+for node in G.nodes:
+    if G.nodes[node]['Type'] == 'city_to_camp':
+        if G.nodes[node]['current_state'] == 'S':
+            if node in d.keys():
+                mean_succ= d[node]/5
+                e=2.71828
+                act_succ=2
+                poisson_dict[node] = ((e**(-mean_succ))*(mean_succ**act_succ))/math.factorial(act_succ)
+
+from collections import Counter,OrderedDict
+
+
+firewood_dispersal = {}
+for node in G.nodes:
+    if G.nodes[node]['Type'] == 'city_to_camp':
+        if G.nodes[node]['current_state'] == 'S':
+            if node in d.keys():
+                firewood_dispersal[node] = (random.choices(['1','2','3','4','5'], k=d[node]))
+
+for k,v in firewood_dispersal.items():
+    firewood_dispersal[k] = dict(Counter(v))
+
+#od = OrderedDict(sorted(firewood_dispersal.items()))
+
+#res = sorted(firewood_dispersal.items(), key = lambda x: x[1]['1'])
+
+print(len(d.keys()))
+        
+
 global prpgl_pres

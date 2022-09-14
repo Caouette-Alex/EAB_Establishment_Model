@@ -29,6 +29,7 @@ from matplotlib import pyplot as plt
 os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model')
 
+plt.rcParams['figure.dpi'] = 300
 
 ###
 # Get the dataframe set up  
@@ -59,6 +60,9 @@ df['per_camp_reserv'] = (df['Count_']/9)
 
 #plot as a scatterplot the number of reservation per year 
 df.plot('Population', 'per_camp_reserv', kind='scatter')
+plt.xlabel('Population size', fontsize=12)
+plt.ylabel('Campground reservations/year', fontsize=12)
+
 
 ###
 # Measure the pearson correlation coefficient between the population and the number of reservations made to a single campground
@@ -69,9 +73,9 @@ y = df['per_camp_reserv']
 
 #measure the correlation
 from scipy.stats import pearsonr
-corr, _ = pearsonr(x,y)
+corr, p_value = pearsonr(x,y)
 print('Pearsons correlation: %.3f' % corr)
-
+print('p-value:', p_value)
 ###
 # Measure the linear regression of the relationship between the number of reservations made to a single campground
 ###
@@ -95,5 +99,33 @@ itrcpt = model.intercept_
 
 slp = model.coef_
 
+
 print('y=',str(slp)[2:-2],'x+',str(itrcpt)[1:-1])
 plt.plot(x, slp*x+itrcpt)
+
+#%%Create scatterplot in Seaborn
+
+import seaborn as sns
+
+custom_params = {"axes.spines.right": False, "axes.spines.top": False}
+sns.set_theme(style = 'ticks', rc=custom_params)
+
+
+fig = plt.figure()
+ax = sns.regplot(x, y, data=df,ci=None, scatter_kws={"color": "teal"}, line_kws={"color": "gray"})
+
+x = df['Population']
+y = df['per_camp_reserv']
+
+equ = ('y=' + str(slp)[2:-2] + 'x+' + str(itrcpt)[1:-1])
+plt.legend()
+plt.text(65000,200,(equ))
+
+#ax.plot(x, slp*x+itrcpt)
+
+
+ax.set_xlabel("Population size")
+ax.set_ylabel("Campground reservations/year")
+
+
+
