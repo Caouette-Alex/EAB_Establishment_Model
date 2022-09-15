@@ -176,20 +176,28 @@ def state_transition(G, current_state):
                 #if node in d.keys():
                     #if d[node] >=1: 
                         #next_state[node] = 'I'
-                        
+    
+    #Dictionary of the mean number of reservations made based on the month 
+    reservations_month = {'May':109.4,'June':619.67, 'July':1521.83, 'August':1583.33, 'September':559.3,'October':62}                   
+    
     firewood_dispersal = {}
+    #Iterate through each susceptible node that received firewood and distribute the firewood based on mean monthly reservations made to campgrounds
     for node in G.nodes:
         if G.nodes[node]['Type'] == 'city_to_camp':
             if current_state[node] == 'S':
                 if node in d.keys():
-                    firewood_dispersal[node] = (random.choices(['1','2','3','4','5','6'],weights=[109.4,619.67,1521.83,1583.33,559,62], k=d[node]))
+                    firewood_dispersal[node] = (random.choices(list(reservations_month.keys()),weights=list(reservations_month.values()), k=d[node]))
     
     from collections import Counter
-    
+    #Count the total number of pieces of firewood distributed to 
     for k,v in firewood_dispersal.items():
         firewood_dispersal[k] = dict(Counter(v))
-
-    num_count = 10
+    
+    ###
+    #Distribute firewood arriving into campground based on month of arrival change the status of the campground based on the number of introduced load(propagule pressure)
+    ###
+    
+    #num_count = 10
     for node in G.nodes:
         if G.nodes[node]['Type'] == 'city_to_camp':
             if current_state[node] == 'S':
@@ -225,22 +233,33 @@ import time
 start = time.process_time()
 
 #Run the simulation
+
+
 #   specify the number of interations that you want to where num_of_sims is the number of iterations of the simulation that you want to run normal amount is 1000
+num_of_sims = 5
 #   Specify the number of years that you want to test in a list like format [5,10,20] = Runs model for 5 years, 10 years, and 20 years
-num_of_sims = 10
-num_of_years = [5] 
-prog_pres = [1,10,25,50]
-# Create a dictionary to store the total invasions for the probability of firewood transportation and time to first transportation of firewood in years
+num_of_years = [5,10] 
+#   Specify the introduced load required so that a location is considered 
+prog_pres = [1,2,3,4,5,6,7,8,9,10]
+
+###
+# Dictionary of dictionaries of dictionaries that stores all the measurements of proportion, time, and total numebr of campgrounds with established pops of EAB
+# The dictionary has the following structure k1:k2:k3:v3 where k1 = Introduced load(propagule pressure), k2 = is the number of years the simulation runs for, k3 = are the names of dataframes
+# Invasion probability(campground infested or not), Invas_time(time point that the campground became infested), Prop_infect(proportion of campgrounds becoming infested based on the year of infestation), descriptive stats of both invas_prob and invas_year
+###
+
 total_invas={}
 
+
+# repeat the simulation to iterate through the prog_pres(Propagule pressure) list, that relates to the introduced load required for a location to become infested
 for int_load in prog_pres:
     print("propagule pressure required", int_load)
-    # Iterate through each set to measure the number of each moved in each set.
-    
+    year_invas={}
+    # Repeat the simulation based 
     for year in num_of_years:
         prop_list=[]    
         #create two dataframes one that measures if a single piece of wood is transported to the destination
-        invas_prob = pd.DataFrame(index=G.nodes)
+        invas_prob= pd.DataFrame(index=G.nodes)
         invas_time = pd.DataFrame(index=G.nodes)
         prop_infect = pd.DataFrame(index=range(1,year+1))
         invas_propagule = pd.DataFrame(index=G.nodes)
@@ -268,7 +287,8 @@ for int_load in prog_pres:
         invas_prob = invas_prob.fillna(0)
         sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
         sum_invas_time_df = invas_time.transpose().describe().transpose()
-        total_invas[year] = {'invas_prob':invas_prob,'sum_invas_prob_df':sum_invas_prob_df,'invas_time':invas_time,'sum_invas_time_df':sum_invas_time_df,'prop_infect':prop_infect}
+        year_invas[year] = {'invas_prob':invas_prob,'sum_invas_prob_df':sum_invas_prob_df,'invas_time':invas_time,'sum_invas_time_df':sum_invas_time_df,'prop_infect':prop_infect}
+    total_invas[int_load] = year_invas
 print(time.process_time() - start)
 
 #%%
