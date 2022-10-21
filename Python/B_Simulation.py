@@ -3,6 +3,7 @@ Simulation class for Chapter 7 Tutorial of Intro Network Science book
 
 Copyright 2018 Indiana University and Cambridge University Press
 '''
+#
 
 from collections import Counter
 from operator import itemgetter
@@ -53,7 +54,6 @@ class Simulation:
         self._initial_state = initial_state
         self._state_transition = state_transition
         self._stop_condition = stop_condition
-        #self._test = state_transition(G, current_state())
         # It's okay to specify stop_condition=False
         if stop_condition and not callable(stop_condition):
             raise TypeError("'stop_condition' should be a function")
@@ -70,7 +70,7 @@ class Simulation:
         self._time_invas = {}
         self._prob_invas = {}
         self._propagule_pres = {}
-        
+        self._test = {}
         self._initialize()
         #self._intro_time = pd.DataFrame(index=self.G)
 
@@ -105,7 +105,9 @@ class Simulation:
         if self._stop_condition and self._stop_condition(self.G, state):
             raise StopCondition
         state = nx.get_node_attributes(self.G, 'state')
-        new_state = self._state_transition(self.G, state)
+        test = self._state_transition(self.G, state)
+        new_state = test[0]
+        #new_state = self._state_transition(self.G, state)[0]
         
         
 
@@ -114,6 +116,7 @@ class Simulation:
         #This creates a dictionary to show what time period each k(node name) changes v(state) to infested 
         #For those that are already infested at step 0(Edmundston, Moncton,Fredericton, Halifax, Oromocto)
         for k, v in state.items():
+            self._test[len(self._states) - 1] ={k:test[1]}
             if v == 'I':
                 if k not in self._time_invas:
                     self._time_invas[k] = len(self._states)

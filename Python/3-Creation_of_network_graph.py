@@ -237,7 +237,7 @@ def state_transition(G, current_state):
                        
                         next_state[node] = 'I'
     
-    # TODO s 
+    
     return next_state, firewood_dispersal
 
 
@@ -291,7 +291,7 @@ for int_load in prog_pres:
         invas_time = pd.DataFrame(index=G.nodes)
         prop_infect = pd.DataFrame(index=range(1,year+1))
         invas_propagule = pd.DataFrame(index=G.nodes)
-    
+        d = {}
         for i in range(num_of_sims):#1000 repeats
             print('Completed', i, 'Simulations out of', num_of_sims)
             
@@ -307,7 +307,7 @@ for int_load in prog_pres:
             #Sim.plot()
             #plt.show()
             #Show the time to invasion for each city c
-        #Sim.invasion_time()
+            #Sim.invasion_time()
             #Append each simulation time to invasion as a column in a dataframe
             invas_time[i] = invas_time.index.map(Sim._time_invas)
             
@@ -316,7 +316,10 @@ for int_load in prog_pres:
             #invas_propagule[i] = invas_propagule(Sim._propagule_pres)
             invas_prob[i] = invas_prob.index.map(Sim._prob_invas)
             prop_infect[i] = prop_infect.index.map(Sim._prop_infect)
-            #Sim.propagule_pressure()
+            for k,v in Sim._test.items():
+                for k2,v2 in v.items():
+                    invas_propagule[i] = invas_propagule.index.map(v2)
+                    d[k2] = invas_propagule
         invas_prob = invas_prob.fillna(0)
         sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
         sum_invas_time_df = invas_time.transpose().describe().transpose()
