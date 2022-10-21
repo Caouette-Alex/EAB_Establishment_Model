@@ -255,7 +255,7 @@ start = time.process_time()
 
 
 #   specify the number of interations that you want to where num_of_sims is the number of iterations of the simulation that you want to run normal amount is 1000
-num_of_sims = 10
+num_of_sims = 2
 #   Specify the number of years that you want to test in a list like format [5,10,20] = Runs model for 5 years, 10 years, and 20 years
 num_of_years = [20] 
 #   Specify the introduced load required so that a location is considered 
@@ -319,12 +319,13 @@ for int_load in prog_pres:
             for k,v in Sim._test.items():
                 for k2,v2 in v.items():
                     invas_propagule[i] = invas_propagule.index.map(v2)
-                    d[k2] = invas_propagule
+                    d['propagule_pres'] = invas_propagule
         invas_prob = invas_prob.fillna(0)
         sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
         sum_invas_time_df = invas_time.transpose().describe().transpose()
+        d2 = {year:d}
         year_invas[year] = {'invas_prob':invas_prob,'sum_invas_prob_df':sum_invas_prob_df,'invas_time':invas_time,'sum_invas_time_df':sum_invas_time_df,'prop_infect':prop_infect,'grid_counts':grid_df_counts}
-    total_invas[int_load] = year_invas
+    total_invas[int_load] = {'Est':year_invas,'Int':d2}
 print(time.process_time() - start)
 
 #%%
@@ -341,10 +342,12 @@ writer = pd.ExcelWriter(path, engine='xlsxwriter')
 #this names and adds each dataframe as sheet in the excel file 
 for k,v in total_invas.items():
     for k1,v1 in v.items():
-        for k2,dframe in v1.items():
-            
-            v1.to_excel(writer, sheet_name=(str(k)+k2))
-
+        for k2,v2 in v1.items():
+            for k3,dframe in v2.items():
+                dframe.to_excel(writer, sheet_name=(str(k)+str(k2)+str(k3)))
+    #for k1,v1 in v[1].items():
+         #for k2,dframe in v1.items():
+             #v1.to_excel(writer, sheet_name=(str(k)+k2))
 writer.save()
 #%%
 
