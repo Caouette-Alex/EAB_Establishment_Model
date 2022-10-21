@@ -53,26 +53,30 @@ class Simulation:
         self._initial_state = initial_state
         self._state_transition = state_transition
         self._stop_condition = stop_condition
+        #self._test = state_transition(G, current_state())
         # It's okay to specify stop_condition=False
         if stop_condition and not callable(stop_condition):
             raise TypeError("'stop_condition' should be a function")
         self.name = name or 'Simulation'
-        
         self._states = []
         self._value_index = {}
         from matplotlib.colors import LinearSegmentedColormap
         #choose the colours for the colour map
         cmap = LinearSegmentedColormap.from_list('my_list',['#d62728','#6e8f6e'] , N=2)
         self._cmap = plt.cm.get_cmap(cmap)
+        
+        self._grid_invas = {}
         self._prop_infect = {}
         self._time_invas = {}
         self._prob_invas = {}
-        #self._propagule_pres = 
+        self._propagule_pres = {}
+        
         self._initialize()
         #self._intro_time = pd.DataFrame(index=self.G)
 
         self._pos = nx.get_node_attributes(G, 'pos')
-
+        self._grid_id = nx.get_node_attributes(G, 'Grid_ID')
+        
     def _append_state(self, state):
         self._states.append(state)
         # Update self._value_index
@@ -104,6 +108,8 @@ class Simulation:
         new_state = self._state_transition(self.G, state)
         
         
+
+                
         
         #This creates a dictionary to show what time period each k(node name) changes v(state) to infested 
         #For those that are already infested at step 0(Edmundston, Moncton,Fredericton, Halifax, Oromocto)
@@ -112,10 +118,12 @@ class Simulation:
                 if k not in self._time_invas:
                     self._time_invas[k] = len(self._states)
                     self._prob_invas[k] = 1
+                    
         for k, v in new_state.items():
-           if k not in self._time_invas:
+            if k not in self._time_invas:
               self._time_invas[k] = len(self._states)
               self._prob_invas[k] = 1
+              self._grid_invas[k] = nx.get_node_attributes(self.G, 'Grid_ID')[k]
         
         state.update(new_state)
         nx.set_node_attributes(self.G, state, 'state')
@@ -316,3 +324,5 @@ class Simulation:
         print(self._time_invas)
     def proportion_infected(self):
         print(self._proportion_infected)
+    def propagule_pressure(self):
+        print(self._test)

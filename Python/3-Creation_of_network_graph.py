@@ -14,6 +14,10 @@ Each simulation iteration starts with the current infested cities: Edmundston, H
 We then extract data from the simulations into dataframes, including the transportation of firewood to destination after set period of time, the time to the first transportation of firewood, the number of propagules per year
 """
 #%% Import packages and add edgelist dataframe
+
+###
+#Import files and packages we have to start at the python directort to import the simulation package written to run this simulation
+###
 import os
 os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding/Python')
@@ -22,16 +26,20 @@ import networkx as nx
 #imported from files from the book by filippo Menczer, Santo Fortunato, and Clayton Davies A first Course in Network Science
 from B_Simulation import Simulation
 
-#Change direcotory to open to where the majority of the data is
+#Change directory to open to where the majority of the data is
 os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding')
 
 #Open edgelist of camping and cities that are interconnected, inlcudes population, sites, lat and long, From file 2-Merge_distance_to_edgelist.py
 edgelist_df= pd.read_csv('Camping_data/Edgelist_Dist_TSRC.csv')
-#%% Create Graph from pandas edgelist and insert node and edge attributes
+#%% Create Graph
+###
+#Create Graph from pandas edgelist and insert node and edge attributes
+###
+
 G = nx.from_pandas_edgelist(edgelist_df,source='Orig_name',target='Dest_name',edge_attr=['Distance_Km','mean_trips_year'])
 
-#add coordinates for each node by first creating key value group of {Dest name: Long, lat}
+#add coordinates to the graph for each  origin and destination node by creating a dictionary of key value pairs using the structure {Dest name: Long, lat}
 dict_pos=dict(zip(edgelist_df.Dest_name,list(zip(edgelist_df.Dest_long,edgelist_df.Dest_lat))))
 dict_pos.update(dict(zip(edgelist_df.Orig_name,list(zip(edgelist_df.Orig_long,edgelist_df.Orig_lat)))))
 nx.set_node_attributes(G, dict_pos, 'pos')
@@ -39,13 +47,18 @@ nx.set_node_attributes(G, dict_pos, 'pos')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Orig_name'],edgelist_df['Orig_pop'])),'Population')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['Sites'])),'Sites')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['type'])),'Type')# might need to change this to an edge attribute
+nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['Grid_ID'])),'Grid_ID')
+# 
 
-# TODO 
 
-#%% Define the initial state of infested locations from non-infested ones and define what happens in the following year
+
+
+#%% Define states
+###
+#Define functions for the initial state(start of the model) of infested locations from non-infested ones and define the transition state(what happens each year thereafter)
+###
+
 #initial state defines cities that are infested, this is a fixed set of locations: Edmundston, Halifax, Fredericton, Oromocto, and Moncton
-prpgl_pres = pd.DataFrame(index = G.nodes)
-
 def initial_state(G):
     state = {}
     inf_cities = 'Edmundston','Halifax', 'Fredericton', 'Moncton', 'Oromocto'
@@ -56,35 +69,38 @@ def initial_state(G):
             state[node] = 'S'
     nx.set_node_attributes(G,state,'State')
     return state
-# State transition defines area's that transition from susceptible to infested in a year. 
+
+
+# State transition defines the crtieria that attract infested firewood from the origin location to the destination location that transitions from susceptible to infested in a year. 
 def state_transition(G, current_state):
-    d_1 = {}
+    
+    #import random is used for the random generation of numbers
     import random
-    #The first generalization is that a majority of campground visits involve relatively short travel distances (<100 km, which is usually a <2-h drive from home) Koch et al. 2012 
+    
+    #Dictionary of destination campgrounds and cities that become infested in the next time period
     next_state={}
+    #Degree is the in-degree, the number of campground nodes connected to it
     degree={}
+    
     origin_degree_camp={}
     origin_degree_city={}
     num_inf_camper={}
     #Per capita value is a source of number of reservations taken from a national system 
-    per_capita_value=0.0047
+    #per_capita_value=0.0047
     
     #Firewood source(0.66 of campers bring their own firewood, of that the source is that outside park:0.25, from home:0.17,cut of collected from another area:0.14)Jacobi et al. 2011, and and incident that wood has live insects in it (percent wood fraxinus:0.1455, percent with live borers:0.34)  Haack et al. 2010
     prob_infested_wood=(0.66)*(0.25+0.17+0.14)*(0.1455*0.34)
     #Iterate through each node splitting the two by infected and uninfected nodes 
-    inf_city=[]
     for node in G.nodes:
         #if the node is infected, print the number of campers leaving the campground with infested wood/year(per capita value) is calculated, and calculate the total campground pull value from all campgrounds(in degree)
         if current_state[node] == 'I':
-            
             # Only cities that are infected can move EAB to different places
             if G.nodes[node]['Type'] == 'city_to_city':
-                inf_city.append(node)
-                #number of infected campers from Origin location
+                #Measures the total number of campers going to campgrounds in all three provinces = (reservations to within province campgrounds)+ (reservations to outside province campgrounds)
+                #number of infected campers from Origin location using the follwing equation (Number of people making reservations from inf. city)*proportion of reservations made within province*(prop. of campgrounds in province*total campgrounds)+
+                #(Number of people making reservations from inf. city)*proportion of reservations made outside of province*(prop. of campgrounds outside of province province*total campgrounds)
                 nx.set_node_attributes(G,{node:(((G.nodes[node]['Population']*0.0016729+6.24567023)*0.85*(0.3333*210)+(G.nodes[node]['Population']*0.0016729+6.24567023)*0.15*(0.6666*210))*prob_infested_wood)},'Infected_camper')
-                #nx.set_node_attributes(G,{node:(G.nodes[node]['Population']*per_capita_value*prob_infested_wood)},'Infected_camper')
-                Inf_camper = nx.get_node_attributes(G,'Infected_camper')
-                
+
                 #Get total campground attractance from all neighbour nodes
                 degree[node]= G.degree(node, weight='Campground_pull')
                 nx.set_node_attributes(G, degree,'in_degree')
@@ -98,17 +114,20 @@ def state_transition(G, current_state):
                 #
                 for neighbor in G.neighbors(node):
                     #If else statement to separate campgrounds and cities to send 
+                        #campgrounds:
                     if G.nodes[neighbor]['Sites'] >1: 
                         #defined variables X_i are the number of campsites, D_ij is the Distance between campground and origin
                         X_i=G.nodes[neighbor]['Sites']
                         D_ij=G.edges[neighbor,node]['Distance_Km']
-                        #g = X_i/(1-)
+                        
                         #Calculate attractance value(Pull) load them into a dictionary of dictionary for each infected node
                         #dict : origin_degree = {Origin(node):{Campground(neighbor): attractance}
+                        #A majority of campground visits involve relatively short travel distances (<100 km, which is usually a <2-h drive from home) Koch et al. 2012 also see Eagles et al. 2015
                         pull = (X_i*(1*(1-0.5))**(D_ij/100))
                         pull_list.append(pull)
                         node_degree_camp[neighbor]=pull
                         origin_degree_camp[node]=node_degree_camp
+                        #cities:
                     else : 
                         P_j=G.nodes[neighbor]['Population']
                         #Mean number of trips made from county A to county B
@@ -116,7 +135,7 @@ def state_transition(G, current_state):
                         D_ij=G.edges[neighbor,node]['Distance_Km']
                     
                         #Calculate attractance value(Pull) load them into a dictionary of dictionary for each infected node
-                        #dict : origin_degree = {Origin(node):{Campground(neighbor): normalized_pull}}
+                        #dict : origin_degree_city = {Origin city(node):{destnation city(neighbor): pull value(population multiplied by the amount of travel between locations )}}
                         pull = (P_j*M_ij)
                         node_degree_city[neighbor]=pull
                         origin_degree_city[node]=node_degree_city          
@@ -129,7 +148,6 @@ def state_transition(G, current_state):
     
     # distribute campers randomly (number of campers using k values) going from origin to a susceptible campground
     for k, v in origin_degree_camp.items():
-        #print(num_inf_camper)
         #randomly select campgrounds(v.keys) based on the pull value that each one has(weight) using the number of campers leaving the city with infested firewood
         infected.append(random.choices(list(v.keys()), weights=list(v.values()), k=num_inf_camper[k]))
         #turn a list of lists into a simple list, by removing extra brackets(flatten list)
@@ -138,9 +156,9 @@ def state_transition(G, current_state):
     d = {x:infected_flat.count(x) for x in infected_flat}
     
 ###
-#Distribute infected firewood based on movement of people across cities 
+#Calculate total pull and select city at a weighted random value based on the total amount of in traffic coming from 
 ###
-    #this loop gets the total pull from all the cities in the in the list from Origin degree cities to a single 
+    #this loop gets the total pull from all the cities in the in the list from Origin degree cities to a single summed value
     total = {}
     for k, v in origin_degree_city.items():
         for k2, v2 in v.items():
@@ -161,7 +179,7 @@ def state_transition(G, current_state):
     d = {x:infected_flat.count(x) for x in infected_flat}
     
     ###
-    #Changing the state of campground +
+    #Changing the state of campground + based on yearly arrival rate of firewood
     ###
     
     #num_count = 2
@@ -177,6 +195,10 @@ def state_transition(G, current_state):
                     #if d[node] >=1: 
                         #next_state[node] = 'I'
     
+    ###
+    #Disperse firewood into camping months based on the mean number of reservations made to NB provicial parks
+    ###
+    
     #Dictionary of the mean number of reservations made based on the month 
     reservations_month = {'May':109.4,'June':619.67, 'July':1521.83, 'August':1583.33, 'September':559.3,'October':62}                   
     
@@ -186,10 +208,11 @@ def state_transition(G, current_state):
         if G.nodes[node]['Type'] == 'city_to_camp':
             if current_state[node] == 'S':
                 if node in d.keys():
+                    #randomly distribute pieces of firewood based on the weights of reservation months. campgrounds are separated by month, weights= number of res, made per year, k= number of pieces of firewood that show up in a year
                     firewood_dispersal[node] = (random.choices(list(reservations_month.keys()),weights=list(reservations_month.values()), k=d[node]))
     
     from collections import Counter
-    #Count the total number of pieces of firewood distributed to 
+    #Count the total number of pieces of firewood distributed to each month
     for k,v in firewood_dispersal.items():
         firewood_dispersal[k] = dict(Counter(v))
     
@@ -197,29 +220,25 @@ def state_transition(G, current_state):
     #Distribute firewood arriving into campground based on month of arrival change the status of the campground based on the number of introduced load(propagule pressure)
     ###
     
-    #num_count = 10
     for node in G.nodes:
         if G.nodes[node]['Type'] == 'city_to_camp':
             if current_state[node] == 'S':
                 if node in firewood_dispersal.keys():
+                    #Measures if the there are any months within that campground that have a high enough arrival rate that equal or surpasses the int_load
                     if dict((k, v) for k, v in firewood_dispersal[node].items() if v >= int_load):
-                        #print(node, firewood_dispersal[node].values())
+    
                         next_state[node] = 'I'
+        #This changes the state of the one city that changes that year
         elif G.nodes[node]['Type'] == 'city_to_city':
             if current_state[node] == 'S':
                 if node in d.keys():
-                    #print(d[node])
+                    
                     if d[node] >=1: 
-                        #print(node)
+                       
                         next_state[node] = 'I'
-    #print(len(d.values()))
     
-    
-    
-    global prpgl_pres
     # TODO s 
-    # prpgl_pres[Sim._step()] = pd.Series(d_1)
-    return next_state
+    return next_state, firewood_dispersal
 
 
 
@@ -236,11 +255,11 @@ start = time.process_time()
 
 
 #   specify the number of interations that you want to where num_of_sims is the number of iterations of the simulation that you want to run normal amount is 1000
-num_of_sims = 1000
+num_of_sims = 10
 #   Specify the number of years that you want to test in a list like format [5,10,20] = Runs model for 5 years, 10 years, and 20 years
-num_of_years = [5,10,20] 
+num_of_years = [20] 
 #   Specify the introduced load required so that a location is considered 
-prog_pres = [1,2,3,4,5,6,7,8,9,10]
+prog_pres = [2,6]
 
 ###
 # Dictionary of dictionaries of dictionaries that stores all the measurements of proportion, time, and total numebr of campgrounds with established pops of EAB
@@ -249,16 +268,25 @@ prog_pres = [1,2,3,4,5,6,7,8,9,10]
 ###
 
 total_invas={}
-
+grid_list = []
+for letter in list(map(chr,range(65,79))):
+    for num in range(9):
+         grid_list.append(letter+'-'+str(num+1))
 
 # repeat the simulation to iterate through the prog_pres(Propagule pressure) list, that relates to the introduced load required for a location to become infested
 for int_load in prog_pres:
     print("propagule pressure required", int_load)
+    # TODO Add description of year_invas
     year_invas={}
-    # Repeat the simulation based 
+    # Repeat the simulation based on the number of years list
     for year in num_of_years:
         prop_list=[]    
-        #create two dataframes one that measures if a single piece of wood is transported to the destination
+        
+        #create two dataframes one that measures how many campground in the zone is infested and another showing the number of campgrounds that are in each hexagon
+        grid_df = pd.DataFrame(index=G.nodes)
+        grid_df_counts = pd.DataFrame(index=grid_list)
+        # TODO Find the count of campgrounds inside each grid code in the datasheet (28 is the number of repeated values on the edgelist, there are that many cities
+        grid_df_counts['total_counts'] = grid_df_counts.index.map(edgelist_df['Grid_ID'].value_counts()/28)
         invas_prob= pd.DataFrame(index=G.nodes)
         invas_time = pd.DataFrame(index=G.nodes)
         prop_infect = pd.DataFrame(index=range(1,year+1))
@@ -279,15 +307,20 @@ for int_load in prog_pres:
             #Sim.plot()
             #plt.show()
             #Show the time to invasion for each city c
-            Sim.invasion_time()
+        #Sim.invasion_time()
             #Append each simulation time to invasion as a column in a dataframe
             invas_time[i] = invas_time.index.map(Sim._time_invas)
+            
+            grid_df[i] =  grid_df.index.map(Sim._grid_invas)
+            grid_df_counts[i] = grid_df_counts.index.map(grid_df[i].value_counts())
+            #invas_propagule[i] = invas_propagule(Sim._propagule_pres)
             invas_prob[i] = invas_prob.index.map(Sim._prob_invas)
             prop_infect[i] = prop_infect.index.map(Sim._prop_infect)
+            #Sim.propagule_pressure()
         invas_prob = invas_prob.fillna(0)
         sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
         sum_invas_time_df = invas_time.transpose().describe().transpose()
-        year_invas[year] = {'invas_prob':invas_prob,'sum_invas_prob_df':sum_invas_prob_df,'invas_time':invas_time,'sum_invas_time_df':sum_invas_time_df,'prop_infect':prop_infect}
+        year_invas[year] = {'invas_prob':invas_prob,'sum_invas_prob_df':sum_invas_prob_df,'invas_time':invas_time,'sum_invas_time_df':sum_invas_time_df,'prop_infect':prop_infect,'grid_counts':grid_df_counts}
     total_invas[int_load] = year_invas
 print(time.process_time() - start)
 
@@ -299,13 +332,15 @@ os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
 
 from datetime import datetime
-path = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+ str(num_of_years)+'invas_bundle_test.xls'
+path = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+ str(num_of_years)+'invas_grid_counts.xls'
 
 writer = pd.ExcelWriter(path, engine='xlsxwriter')
 #this names and adds each dataframe as sheet in the excel file 
 for k,v in total_invas.items():
-    for key,dframe in v.items():
-        dframe.to_excel(writer, sheet_name=(str(k)+key))
+    for k1,v1 in v.items():
+        for k2,dframe in v1.items():
+            
+            v1.to_excel(writer, sheet_name=(str(k)+k2))
 
 writer.save()
 #%%

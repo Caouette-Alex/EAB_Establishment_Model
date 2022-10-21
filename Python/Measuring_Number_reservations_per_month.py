@@ -58,7 +58,7 @@ plt.show()
 
 
 #Create a figure that represents the mean number of reservations  
-ax = sns.barplot(data = df_short, x= df_short.index, y = 'mean')
+ax = sns.barplot(data = df_short, x= df_short.index, y = 'mean', color=sns.color_palette('pastel')[0])
 ax.errorbar(x =[0,1,2,3,4,5], y = df_short['mean'], yerr = df_short['ste'],fmt='none',c = 'k')
 ax.set_ylabel('Mean reservations/year')
 ax.set_xlabel('Month')

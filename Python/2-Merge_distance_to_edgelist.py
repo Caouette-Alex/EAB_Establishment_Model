@@ -17,7 +17,7 @@ os.chdir("Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Mo
 #%%
 
 #Create dataframe of City to campground distance data pulled from Arcmap
-dist_camp_df = pd.read_csv('Camping_data/Distance_camp_city.csv')
+dist_camp_df = pd.read_csv('Camping_data/road_distance_camp_city.csv')
 dist_camp_df = dist_camp_df[['Name','Total_Leng']].rename(columns={'Total_Leng':'Distance_Km'})
 dist_camp_df['Distance_Km'] = dist_camp_df['Distance_Km']/1000
 
@@ -37,12 +37,12 @@ city_df = pd.read_csv('Camping_data/Edgelist_citytocity.csv').rename(columns={'U
 city_edgelist = city_df.merge(dist_city_df, left_on='ID', right_on='Name') 
 city_edgelist['Distance_Km'] = city_edgelist['Distance_Km'].replace(0, np.nan)
 city_edgelist = city_edgelist.dropna(subset=['Distance_Km'])
-#fill all empty 
+#add the city edgelist into the camp edgelist and fill all Nan rows with -1
 Edgelist_df= camp_edgelist.append(city_edgelist).fillna(-1)
 
 Edgelist_df.to_csv('Camping_data/Edgelist_dist.csv')
 
-#%%
+
 """
 Add the TSRC travel data to the columns
 

@@ -18,16 +18,16 @@ import os
 os.chdir('\..')
 os.chdir("Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/")
 
-camp_df = pd.read_csv('Coding/Camping_data/Parks_and_camping_Master_2022-02-24.csv')
+camp_df = pd.read_csv('Coding/Camping_data/Parks_and_camping_Master_2022-10-06.csv')
 city_df = pd.read_csv('Coding/Camping_data/Cities_Master_2021-12-07.csv').sort_values(by='Geographic_Name').reset_index()
 
 #import the dictionary codes for the Census divisions of each campground and city
-cen_camp_dic = pd.read_csv('Coding/Camping_data/Cen_div_camp.csv').drop(columns='Name')
+#cen_camp_dic = pd.read_csv('Coding/Camping_data/Cen_div_camp.csv').drop(columns='Name')
 cen_city_dic = pd.read_csv('Coding/City_data/Cen_div_city.csv').sort_values(by='Orig_name').reset_index(drop=True).rename(columns={'Orig_name': 'Name'})
 
 city_df = city_df.rename(columns={'Latitude':'Lat','Longitude':'Long','Province':'Prov','Geographic_Name': 'Name'})
 #join a the TSRC data to the camp and city data
-camp_df = camp_df.merge(cen_camp_dic, on='Key')
+#camp_df = camp_df.merge(cen_camp_dic, on='Key')
 city_df = city_df.merge(cen_city_dic, on='Name')
 
 
@@ -39,17 +39,19 @@ camp_df=camp_df.replace('?',np.NaN).replace(r'^\s*$',np.NaN,regex=True).replace(
 #Fill NAN sites to have zero 
 camp_df['Sites'] = camp_df['Sites'].fillna(0)
 #include only pertinent columns
-camp_df= camp_df[['Type of Campground', 'Name','Province', 'Sites', 'Latitude', 'Longitude', 'Aquiring firewood','CDUID']]
+camp_df= camp_df[['Type of Campground', 'Name','Province', 'Sites', 'Latitude', 'Longitude','Grid_ID', 'Aquiring firewood']]
 #Change data type of Sites, Latitude, and Longitude
 camp_df= camp_df.astype({'Sites':'int32','Latitude':'float64', 'Longitude':'float64' })
 camp_df= camp_df.replace(0,np.NaN).dropna(subset=['Latitude'])
 camp_df= camp_df.rename(columns={'Name':'Dest_name','Latitude':'Dest_lat','Longitude':'Dest_long', 'CDUID':'Dest_CDUID'})
 camp_df = camp_df
 
+Grid_ID_count = camp_df['Grid_ID'].value_counts()
+
 #Multiply the rows of camp_df and city_df to have the same number of replicates 
 Rep_camp_df = pd.concat([camp_df]*len(city_df.index), ignore_index=True)
-Rep_city_df = pd.concat([city_df]*len(camp_df.index), ignore_index=True).sort_values(by=['index1']).reset_index().rename(columns= {'Name':'Orig_name','Lat':'Orig_lat', 'Long':'Orig_long','Population':'Orig_pop','Prov':'Orig_prov','CDUID': 'Orig_CDUID'})
-Edgelist_citytocamp_df = Rep_camp_df.join(Rep_city_df[['Orig_name','Orig_pop','Orig_lat','Orig_long','Orig_CDUID']]) 
+Rep_city_df = pd.concat([city_df]*len(camp_df.index), ignore_index=True).sort_values(by=['index1']).reset_index().rename(columns= {'Name':'Orig_name','Lat':'Orig_lat', 'Long':'Orig_long','Population':'Orig_pop','Prov':'Orig_prov'})
+Edgelist_citytocamp_df = Rep_camp_df.join(Rep_city_df[['Orig_name','Orig_pop','Orig_lat','Orig_long']]) 
 Edgelist_citytocamp_df['type'] = 'city_to_camp'
 
 
