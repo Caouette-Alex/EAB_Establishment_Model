@@ -259,7 +259,7 @@ num_of_sims = 2
 #   Specify the number of years that you want to test in a list like format [5,10,20] = Runs model for 5 years, 10 years, and 20 years
 num_of_years = [20] 
 #   Specify the introduced load required so that a location is considered 
-prog_pres = [2,6]
+prog_pres = [2]
 
 ###
 # Dictionary of dictionaries of dictionaries that stores all the measurements of proportion, time, and total numebr of campgrounds with established pops of EAB
@@ -293,11 +293,9 @@ for int_load in prog_pres:
         invas_time = pd.DataFrame(index=G.nodes)
         
         prop_infect = pd.DataFrame(index=range(1,year+1))
-        invas_propagule = pd.DataFrame(index=G.nodes)
         
-        test = pd.DataFrame.from_dict(dict(G.nodes(data=True)), orient='index')
-        invas_propagule['Grid_ID'] = test['Grid_ID']
         d = {}
+        
         for i in range(num_of_sims):#1000 repeats
             print('Completed', i, 'Simulations out of', num_of_sims)
             
@@ -323,11 +321,17 @@ for int_load in prog_pres:
             invas_prob[i] = invas_prob.index.map(Sim._prob_invas)
             prop_infect[i] = prop_infect.index.map(Sim._prop_infect)
             # Iterate through the dictionary of dictionaries{year:{:}} create a dataframe
+            invas_propagule = pd.DataFrame(index=G.nodes)
+            
+            index_col = pd.DataFrame.from_dict(dict(G.nodes(data=True)), orient='index')
+            invas_propagule['Grid_ID'] = index_col['Grid_ID']
+            
             for k,v in Sim._test.items():
-                for k2,v2 in v.items():
-                    print(k,v,k2,v2)
-                    invas_propagule[k] = invas_propagule.index.map(v2)
-                    d[i] = invas_propagule
+                #for k2,v2 in v.items():
+                print('this is #', k)
+                print(v)
+                invas_propagule[k] = invas_propagule.index.map(v)
+            d[i] = invas_propagule
         invas_prob = invas_prob.fillna(0)
         sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
         sum_invas_time_df = invas_time.transpose().describe().transpose()
