@@ -217,27 +217,47 @@ def state_transition(G, current_state):
     for k,v in firewood_dispersal.items():
         firewood_dispersal[k] = dict(Counter(v))
     
+    #Supply rate of EAB from unburnt firewood. Calculated using the equation from the file Relationship_firewood_burn_vs_emergence_probability.py
+    sup_rate_EAB={'May':0.0635, 'June':0.269, 'July':0.391, 'August':0.0694, 'September':0, 'October': 0}
+    
+    
+    
     ###
     #Distribute firewood arriving into campground based on month of arrival change the status of the campground based on the number of introduced load(propagule pressure)
     ###
     
-    for node in G.nodes:
-        if G.nodes[node]['Type'] == 'city_to_camp':
-            if current_state[node] == 'S':
-                if node in firewood_dispersal.keys():
-                    #Measures if the there are any months within that campground that have a high enough arrival rate that equal or surpasses the int_load
-                    if dict((k, v) for k, v in firewood_dispersal[node].items() if v >= int_load):
+    def firewood_timing_off():
+        for node in G.nodes:
+            if G.nodes[node]['Type'] == 'city_to_camp':
+                if current_state[node] == 'S':
+                    if node in firewood_dispersal.keys():
+                        #Measures if the there are any months within that campground that have a high enough arrival rate that equal or surpasses the int_load
+                        if dict((k, v) for k, v in firewood_dispersal[node].items() if v >= int_load):
+                            
+                            next_state[node] = 'I'
+            #This changes the state of the one city that changes that year
+            elif G.nodes[node]['Type'] == 'city_to_city':
+                if current_state[node] == 'S':
+                    if node in d.keys():
+                        
+                        if d[node] >=1: 
+                           
+                            next_state[node] = 'I'
     
-                        next_state[node] = 'I'
-        #This changes the state of the one city that changes that year
-        elif G.nodes[node]['Type'] == 'city_to_city':
-            if current_state[node] == 'S':
-                if node in d.keys():
-                    
-                    if d[node] >=1: 
-                       
-                        next_state[node] = 'I'
-    
+    def firewood_timing_on():
+        for node in G.nodes:
+            if G.nodes[node]['Type'] == 'city_to_camp':
+                if current_state[node] == 'S':
+                    if node in firewood_dispersal.keys():
+                        #Measures if the there are any months within that campground that have a high enough arrival rate that equal or surpasses the int_load
+                        #if dict((k, v) for k, v in firewood_dispersal[node].items() if v >= int_load):
+                        test=dict((k, v) for k, v in firewood_dispersal[node].items() if v >= int_load)
+                        
+                        for i in test.keys():
+                            rand=random.random()
+                            if rand < sup_rate_EAB[i]:
+                                next_state[node] = 'I'
+    firewood_timing_on()
     
     return next_state, firewood_dispersal
 
@@ -256,11 +276,11 @@ start = time.process_time()
 
 
 #   specify the number of interations that you want to where num_of_sims is the number of iterations of the simulation that you want to run normal amount is 1000
-num_of_sims = 2
+num_of_sims = 1000
 #   Specify the number of years that you want to test in a list like format [5,10,20] = Runs model for 5 years, 10 years, and 20 years
 num_of_years = [20] 
 #   Specify the introduced load required so that a location is considered 
-prog_pres = [2]
+prog_pres = [2,6]
 
 ###
 # Dictionary of dictionaries of dictionaries that stores all the measurements of proportion, time, and total numebr of campgrounds with established pops of EAB
