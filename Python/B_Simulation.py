@@ -116,6 +116,7 @@ class Simulation:
         #This creates a dictionary to show what time period each k(node name) changes v(state) to infested 
         #For those that are already infested at step 0(Edmundston, Moncton,Fredericton, Halifax, Oromocto)
         for k, v in state.items():
+            #Create a dictionary that represents the propagule pressure of each piece of firewood arriving
             self._test[len(self._states) - 1] ={k:test[1]}
             if v == 'I':
                 if k not in self._time_invas:

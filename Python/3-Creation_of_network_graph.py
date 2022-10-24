@@ -287,10 +287,16 @@ for int_load in prog_pres:
         grid_df_counts = pd.DataFrame(index=grid_list)
         # TODO Find the count of campgrounds inside each grid code in the datasheet (28 is the number of repeated values on the edgelist, there are that many cities
         grid_df_counts['total_counts'] = grid_df_counts.index.map(edgelist_df['Grid_ID'].value_counts()/28)
+        
         invas_prob= pd.DataFrame(index=G.nodes)
+        
         invas_time = pd.DataFrame(index=G.nodes)
+        
         prop_infect = pd.DataFrame(index=range(1,year+1))
         invas_propagule = pd.DataFrame(index=G.nodes)
+        
+        test = pd.DataFrame.from_dict(dict(G.nodes(data=True)), orient='index')
+        invas_propagule['Grid_ID'] = test['Grid_ID']
         d = {}
         for i in range(num_of_sims):#1000 repeats
             print('Completed', i, 'Simulations out of', num_of_sims)
@@ -316,16 +322,19 @@ for int_load in prog_pres:
             #invas_propagule[i] = invas_propagule(Sim._propagule_pres)
             invas_prob[i] = invas_prob.index.map(Sim._prob_invas)
             prop_infect[i] = prop_infect.index.map(Sim._prop_infect)
+            # Iterate through the dictionary of dictionaries{year:{:}} create a dataframe
             for k,v in Sim._test.items():
                 for k2,v2 in v.items():
-                    invas_propagule[i] = invas_propagule.index.map(v2)
-                    d['propagule_pres'] = invas_propagule
+                    print(k,v,k2,v2)
+                    invas_propagule[k] = invas_propagule.index.map(v2)
+                    d[i] = invas_propagule
         invas_prob = invas_prob.fillna(0)
         sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
         sum_invas_time_df = invas_time.transpose().describe().transpose()
         d2 = {year:d}
         year_invas[year] = {'invas_prob':invas_prob,'sum_invas_prob_df':sum_invas_prob_df,'invas_time':invas_time,'sum_invas_time_df':sum_invas_time_df,'prop_infect':prop_infect,'grid_counts':grid_df_counts}
-    total_invas[int_load] = {'Est':year_invas,'Int':d2}
+    total_invas[int_load] = year_invas
+     
 print(time.process_time() - start)
 
 #%%
@@ -336,19 +345,27 @@ os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
 
 from datetime import datetime
-path = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+ str(num_of_years)+'invas_grid_counts.xls'
+path = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+ str(num_of_years)+'Establishment.xls'
 
 writer = pd.ExcelWriter(path, engine='xlsxwriter')
 #this names and adds each dataframe as sheet in the excel file 
 for k,v in total_invas.items():
     for k1,v1 in v.items():
-        for k2,v2 in v1.items():
-            for k3,dframe in v2.items():
-                dframe.to_excel(writer, sheet_name=(str(k)+str(k2)+str(k3)))
+        for k2,dframe in v1.items():
+            dframe.to_excel(writer, sheet_name=(str(k)+str(k2)))
     #for k1,v1 in v[1].items():
          #for k2,dframe in v1.items():
              #v1.to_excel(writer, sheet_name=(str(k)+k2))
 writer.save()
+
+path = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+ str(num_of_years)+'Introduction.xls'
+intro_writer = pd.ExcelWriter(path, engine = 'xlsxwriter')
+for k,v in d2.items():
+    for k1,dframe in v.items():
+        dframe.to_excel(intro_writer, sheet_name=('years#'+str(k)+'_sim#'+str(k1)))
+
+intro_writer.save()
+
 #%%
 
 os.chdir('\..')
