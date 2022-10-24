@@ -163,7 +163,8 @@ def state_transition(G, current_state):
     for k, v in origin_degree_city.items():
         for k2, v2 in v.items():
             total[k2] = total.get(k2, 0) + v2
-            
+    
+    #remove the cities that are already infected
     for node in G.nodes:
         if G.nodes[node]['Type'] == 'city_to_city':
             if current_state[node] == 'I':
@@ -206,10 +207,10 @@ def state_transition(G, current_state):
     #Iterate through each susceptible node that received firewood and distribute the firewood based on mean monthly reservations made to campgrounds
     for node in G.nodes:
         if G.nodes[node]['Type'] == 'city_to_camp':
-            if current_state[node] == 'S':
-                if node in d.keys():
-                    #randomly distribute pieces of firewood based on the weights of reservation months. campgrounds are separated by month, weights= number of res, made per year, k= number of pieces of firewood that show up in a year
-                    firewood_dispersal[node] = (random.choices(list(reservations_month.keys()),weights=list(reservations_month.values()), k=d[node]))
+            #if current_state[node] == 'S':
+            if node in d.keys():
+                #randomly distribute pieces of firewood based on the weights of reservation months. campgrounds are separated by month, weights= number of res, made per year, k= number of pieces of firewood that show up in a year
+                firewood_dispersal[node] = (random.choices(list(reservations_month.keys()),weights=list(reservations_month.values()), k=d[node]))
     
     from collections import Counter
     #Count the total number of pieces of firewood distributed to each month
@@ -328,8 +329,6 @@ for int_load in prog_pres:
             
             for k,v in Sim._test.items():
                 #for k2,v2 in v.items():
-                print('this is #', k)
-                print(v)
                 invas_propagule[k] = invas_propagule.index.map(v)
             d[i] = invas_propagule
         invas_prob = invas_prob.fillna(0)
