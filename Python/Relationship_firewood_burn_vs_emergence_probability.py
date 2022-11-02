@@ -12,9 +12,9 @@ from datetime import date
 import pandas as pd
 from matplotlib import pyplot as plt
 
-#dictionary representing the flight percentile based on the degree day corrected for the date
-d = {0.9:[2022,7,13], 0.75:[2022,7,20], 0.5:[2022,7,27], 0.25:[2022,8,5], 0.1:[2022,8,16]}
-
+#dictionary representing the flight percentile based on the degree day corrected for the date (Data is from Tobin et al. 2021)
+d = {0.1:[2022,7,13], 0.25:[2022,7,20], 0.5:[2022,7,27], 0.75:[2022,8,5], 0.9:[2022,8,16]}
+#d = {0.9:[2022,7,13], 0.75:[2022,7,20], 0.5:[2022,7,27], 0.25:[2022,8,5], 0.1:[2022,8,16]}
 #convert dates to the Julien date
 for k,v in d.items():
     day_of_year = date(v[0], v[1], v[2]).timetuple().tm_yday
@@ -54,7 +54,7 @@ ax = fig.add_subplot(211)
 #Plot the data points to show fit of the model
 ax.plot(df['x'], df['y'],'o', color = 'royalblue', label='data')
 #Plot the proportion of beetles left to emerge(logistic decay function)
-ax.plot(x,sig_y,'royalblue' ,label='Proporition of EAB still present in the firewood (A)')
+ax.plot(x,sig_y,'royalblue' ,label='Proportion of EAB still present in the firewood (A)')
 ax.axis(ymin=0, ymax=1.05)
 ax.set_ylabel('Proportion/probability')
 #ax.grid() 
@@ -64,7 +64,7 @@ ax.plot(x,lin_y,'-r',label = 'Probability that firewood is burnt before EAB emer
 #Create a second y acis with the 
 #ax2 = ax.twinx()
 #ax2.axis(ymin=0, ymax=1.05)
-ax.plot(x,arrival_prob_array, color ='g' , label = 'Supply rate of EAB to the campground from unburned firewood (A*(1-B))')
+ax.plot(x,arrival_prob_array, color ='g' , label = 'Probability of EAB emergence from unburned firewood (A*(1-B))')
 #ax2.set_ylabel('Probability of EAB emergence Firewood Burnt (B)', fontsize=9)
 
 
@@ -106,18 +106,23 @@ cmap = iter([plt.cm.Set3(i) for i in range(20)])
 #define the colors of each month
 colors = {'May':next(cmap),'June':next(cmap),'July':next(cmap),'August':next(cmap),'September':next(cmap),'October':next(cmap)}
 #Plot barchart that represents the mean probability that EAB emerges before firewood is burnt in that single month
-ax3.bar([135,152,182,213,244,274], height = df2['height'], width = df2['width'], color = list(colors.values()))
+ax3.bar([135,152,182,213,244,274],align = 'edge', height = df2['height'], width = df2['width'], color = list(colors.values()))
 
 #Create labels for the legend
 labels3 = list(colors.keys())
 handles3 = [plt.Rectangle((0,0),1,1, color=colors[label]) for label in labels3]
-fig.legend(lines + lines2, labels + labels2, bbox_to_anchor = (0.925,1.2), ncol = 1)
+lgd = fig.legend(lines , labels , bbox_to_anchor = (0.925,1.2), ncol = 1)
 #ax3.legend(handles, labels, loc = 'right')
+ax3.set_ylabel('Probability')
 ax3.set_xlabel('Julian Date')
 #plt.legend(loc='best')
-d={'May':126,'June':145,'July':177, 'August':205}
+d={'May':138,'June':160,'July':192, 'August':220}
 for k,v in d.items():
     ax3.text(v,0.1,k) 
 
-plt.show()
 
+import os 
+os.chdir('\..')
+os.chdir("Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results")
+plt.savefig('probability_EAB_emergence_from_unburned_firewood',bbox_inches='tight',dpi=300)
+plt.show()
