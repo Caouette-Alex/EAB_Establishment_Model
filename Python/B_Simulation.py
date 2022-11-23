@@ -117,7 +117,7 @@ class Simulation:
         #For those that are already infested at step 0(Edmundston, Moncton,Fredericton, Halifax, Oromocto)
         for k, v in state.items():
             #Create a dictionary that represents the propagule pressure of each piece of firewood arriving
-            self._test[len(self._states) - 1] ={k:test[1]}
+            self._test[len(self._states) - 1] =test[1]
             if v == 'I':
                 if k not in self._time_invas:
                     self._time_invas[k] = len(self._states)

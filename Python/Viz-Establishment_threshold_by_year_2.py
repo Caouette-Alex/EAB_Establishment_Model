@@ -100,7 +100,7 @@ ax.legend(title = 'Establishment threshold (# inf. pieces/year)',title_fontsize=
 #ax.fill_between(prop_mean_df.index, prop_mean_df.std_upper, prop_mean_df.std_lower)
 ax.set_ylabel('Locations with established population of EAB(%)')
 ax.set_xlabel('Year')
-ax.heatmap(prop_mean_short)
+#ax.heatmap(prop_mean_short)
 
 plt.savefig('Model_results/Proportion_of_EAB_establishment_year_seaborn.png', dpi=300)
 
@@ -122,7 +122,7 @@ ax.set_yticks([0, 20, 40, 60,80 , 100-1], labels=[0,20,40,60,80,100])
 ax.set_xticks([1-1,5-1,10-1,15-1,20-1], labels=[1,5,10,15,20])
 ax.errorbar(prop_mean_10['establishment_threshold'],prop_mean_10['proportion_established'], yerr=prop_mean_10['proportion_established_std'], fmt='none', elinewidth=0.5,color = 'grey')
 
-plt.savefig('Model_results/Proportion_of_EAB_establishment_at_10_years_seaborn.png', dpi=300)
+plt.savefig('Model_results/Proportion_of_EAB_establishment_at_20_years_seaborn.png', dpi=300)
 #ax2 = sns.lineplot(data=prop_mean_10, x ='establishment_threshold', y= 'proportion_established')
 #%%Proportion of locations with EAB establishment based on the establishment threshold @ 10 years #MATPLOTLIB#
 ###

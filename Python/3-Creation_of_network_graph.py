@@ -218,7 +218,7 @@ def state_transition(G, current_state):
         firewood_dispersal[k] = dict(Counter(v))
     
     #Supply rate of EAB from unburnt firewood. Calculated using the equation from the file Relationship_firewood_burn_vs_emergence_probability.py
-    sup_rate_EAB={'May':0.0635, 'June':0.269, 'July':0.391, 'August':0.0694, 'September':0, 'October': 0}
+    sup_rate_EAB={'May':0.0635, 'June':0.269, 'July':0.391, 'August':0.0694, 'September':0.002, 'October': 0}
     
     
     
@@ -227,36 +227,69 @@ def state_transition(G, current_state):
     ###
     
     def firewood_timing_off():
+        #iterate through all the nodes in the network
         for node in G.nodes:
+            #select on nodes that are attached to campgrounds
             if G.nodes[node]['Type'] == 'city_to_camp':
+                #select only campgrounds that are susceptible
                 if current_state[node] == 'S':
+                    #Select only nodes that have firewood arriving at the campground
                     if node in firewood_dispersal.keys():
-                        #Measures if the there are any months within that campground that have a high enough arrival rate that equal or surpasses the int_load
+                        #Measures if the there are any months within that campground that have a high enough arrival rate that equal or surpasses the establishment threshold required for establishment
                         if dict((k, v) for k, v in firewood_dispersal[node].items() if v >= int_load):
-                            
+                            #change location from susceptible to infested
                             next_state[node] = 'I'
-            #This changes the state of the one city that changes that year
+            #One city becomes infested each year based on random weighted choice from the population and total travel to the area from all the infested locations
             elif G.nodes[node]['Type'] == 'city_to_city':
+                #select only cities that are susceptible
                 if current_state[node] == 'S':
+                    #TODO confirm what the dictionary d has to do at this point
                     if node in d.keys():
-                        
+                        #Find the city that is selected based on the size and weighted movement of firewood
                         if d[node] >=1: 
-                           
+                            #change location from susceptible to infested
                             next_state[node] = 'I'
     
     def firewood_timing_on():
+        #iterate through all the nodes in the network
         for node in G.nodes:
+            #select on nodes that are attached to campgrounds
             if G.nodes[node]['Type'] == 'city_to_camp':
+                #select only nodes that are susceptible
                 if current_state[node] == 'S':
+                    #Select only nodes that have firewood arriving at the campground
                     if node in firewood_dispersal.keys():
                         #Measures if the there are any months within that campground that have a high enough arrival rate that equal or surpasses the int_load
                         #if dict((k, v) for k, v in firewood_dispersal[node].items() if v >= int_load):
-                        test=dict((k, v) for k, v in firewood_dispersal[node].items() if v >= int_load)
                         
-                        for i in test.keys():
-                            rand=random.random()
-                            if rand < sup_rate_EAB[i]:
-                                next_state[node] = 'I'
+                        #Measure the number of pieces of firewood that have emergence based on the month of arrival
+                        #Iterate through each month in the dictionary firewood dispersal
+                        for month,firewood_load in firewood_dispersal[node].items():
+                            #reset the number of pieces of firewood that have emerged
+                            emerged_firewood = 0
+                            #loop through each piece of firewood to see if it reaches emergence before being burned
+                            for piece_firewood in range(firewood_load):
+                                #generate a random number between 0-1
+                                rand=random.random()
+                                # see if the random number is less than the supply rate of emerged firewood
+                                if rand < sup_rate_EAB[month]:
+                                    #add that firewood to those that have emerged in that month
+                                    emerged_firewood = emerged_firewood+1
+                            #change the value of arrived firewood to that of firewood that had beetles emerge from it
+                            firewood_dispersal[node][month] = emerged_firewood
+                        #Measures if the there are any months within that campground that have a high enough arrival rate that equal or surpasses the establishment threshold required for establishment
+                        if dict((k, v) for k, v in firewood_dispersal[node].items() if v >= int_load):
+                            next_state[node] = 'I'
+            #One city becomes infested each year based on random weighted choice from the population and total travel to the area from all the infested locations
+            elif G.nodes[node]['Type'] == 'city_to_city':
+                #select only cities that are susceptible
+                if current_state[node] == 'S':
+                    #TODO confirm what the dictionary d has to do at this point
+                    if node in d.keys():
+                        #Find the city that is selected based on the size and weighted movement of firewood
+                        if d[node] >=1: 
+                            #change location from susceptible to infested
+                            next_state[node] = 'I'
     firewood_timing_on()
     
     return next_state, firewood_dispersal
@@ -274,7 +307,7 @@ start = time.process_time()
 
 #Run the simulation
 
-
+#firewood = [firewood_timing_off,firewood_timing_on]
 #   specify the number of interations that you want to where num_of_sims is the number of iterations of the simulation that you want to run normal amount is 1000
 num_of_sims = 1000
 #   Specify the number of years that you want to test in a list like format [5,10,20] = Runs model for 5 years, 10 years, and 20 years
@@ -290,6 +323,7 @@ prog_pres = [2,6]
 
 total_invas={}
 grid_list = []
+#Create a list that contains all the grid values from the hexagons
 for letter in list(map(chr,range(65,79))):
     for num in range(9):
          grid_list.append(letter+'-'+str(num+1))
@@ -368,7 +402,7 @@ os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
 
 from datetime import datetime
-path = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+ str(num_of_years)+'Establishment.xls'
+path = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+ str(num_of_years)+'Establishment_fire_on.xls'
 
 writer = pd.ExcelWriter(path, engine='xlsxwriter')
 #this names and adds each dataframe as sheet in the excel file 
