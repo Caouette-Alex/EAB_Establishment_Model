@@ -106,12 +106,12 @@ def state_transition(G, current_state):
                 nx.set_node_attributes(G, degree,'in_degree')
                 num_inf_camper[node]=round(G.nodes[node]['Infected_camper'])
                 
-                #Get the pull of each campground using number of campsites in campground and distance between campground and origin
+                
                 node_degree_camp={}
                 node_degree_city={}
                 pull_list=[]
                 
-                #
+                #Get the pull of each campground using number of campsites in campground and distance between campground and origin
                 for neighbor in G.neighbors(node):
                     #If else statement to separate campgrounds and cities to send 
                         #campgrounds:
@@ -120,9 +120,10 @@ def state_transition(G, current_state):
                         X_i=G.nodes[neighbor]['Sites']
                         D_ij=G.edges[neighbor,node]['Distance_Km']
                         
-                        #Calculate attractance value(Pull) load them into a dictionary of dictionary for each infected node
+                        #Calculate attractance value (Pull) load them into a dictionary of dictionary for each infected node
                         #dict : origin_degree = {Origin(node):{Campground(neighbor): attractance}
                         #A majority of campground visits involve relatively short travel distances (<100 km, which is usually a <2-h drive from home) Koch et al. 2012 also see Eagles et al. 2015
+                        #TODO _
                         pull = (X_i*(1*(1-0.5))**(D_ij/100))
                         pull_list.append(pull)
                         node_degree_camp[neighbor]=pull
@@ -290,6 +291,7 @@ def state_transition(G, current_state):
                         if d[node] >=1: 
                             #change location from susceptible to infested
                             next_state[node] = 'I'
+    #Select which package to write
     firewood_timing_on()
     
     return next_state, firewood_dispersal
@@ -309,7 +311,7 @@ start = time.process_time()
 
 #firewood = [firewood_timing_off,firewood_timing_on]
 #   specify the number of interations that you want to where num_of_sims is the number of iterations of the simulation that you want to run normal amount is 1000
-num_of_sims = 1000
+num_of_sims = 10
 #   Specify the number of years that you want to test in a list like format [5,10,20] = Runs model for 5 years, 10 years, and 20 years
 num_of_years = [20] 
 #   Specify the introduced load required so that a location is considered 
@@ -340,16 +342,17 @@ for int_load in prog_pres:
         #create two dataframes one that measures how many campground in the zone is infested and another showing the number of campgrounds that are in each hexagon
         grid_df = pd.DataFrame(index=G.nodes)
         grid_df_counts = pd.DataFrame(index=grid_list)
-        # TODO Find the count of campgrounds inside each grid code in the datasheet (28 is the number of repeated values on the edgelist, there are that many cities
+        #Find the total number of campgrounds inside each grid code in the datasheet (28 is the number of repeated values on the edgelist, there are that many cities)
         grid_df_counts['total_counts'] = grid_df_counts.index.map(edgelist_df['Grid_ID'].value_counts()/28)
         
+        #Create data frame to count if a location is infested or not
         invas_prob= pd.DataFrame(index=G.nodes)
-        
+        #Create data frame that measures the time that each campground becomes infested
         invas_time = pd.DataFrame(index=G.nodes)
-        
+        #Count proportion of campgrounds that are infested each year(col=simulation, row= year)
         prop_infect = pd.DataFrame(index=range(1,year+1))
         
-        d = {}
+        prop_pres_dict = {}
         
         for i in range(num_of_sims):#1000 repeats
             print('Completed', i, 'Simulations out of', num_of_sims)
@@ -358,38 +361,41 @@ for int_load in prog_pres:
             Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
             #run the simulation
             Sim.run(year)
-            #Draw the network at each interval of nth steps()
-            #Sim.draw()
-            #plt.show()
             
-            #Draw the proportions of infested nodes vs. susceptible nodes from time 0 to nth steps()
-            #Sim.plot()
-            #plt.show()
-            #Show the time to invasion for each city c
-            #Sim.invasion_time()
             #Append each simulation time to invasion as a column in a dataframe
             invas_time[i] = invas_time.index.map(Sim._time_invas)
             
+            #map whether campgrounds become invaded as a 0 or 1 value
             grid_df[i] =  grid_df.index.map(Sim._grid_invas)
+            #convert those values to count the number of infested campgrounds for each locations
             grid_df_counts[i] = grid_df_counts.index.map(grid_df[i].value_counts())
-            #invas_propagule[i] = invas_propagule(Sim._propagule_pres)
+            #add new col for eacb simulation and map to campgrounds
             invas_prob[i] = invas_prob.index.map(Sim._prob_invas)
+            #add new col for eacb simulation and map to campgrounds
             prop_infect[i] = prop_infect.index.map(Sim._prop_infect)
             # Iterate through the dictionary of dictionaries{year:{:}} create a dataframe
             invas_propagule = pd.DataFrame(index=G.nodes)
             
+            #Add column of Grid ID to number of pieces of firewood showing up in a give month
             index_col = pd.DataFrame.from_dict(dict(G.nodes(data=True)), orient='index')
             invas_propagule['Grid_ID'] = index_col['Grid_ID']
             
+            #Create a dataframe for each iteration of simluation and add them together into a dictionary
             for k,v in Sim._test.items():
                 #for k2,v2 in v.items():
                 invas_propagule[k] = invas_propagule.index.map(v)
-            d[i] = invas_propagule
+            prop_pres_dict[i] = invas_propagule
+        
+        #convert nan values to 0 values for the dataframe
         invas_prob = invas_prob.fillna(0)
+        
         sum_invas_prob_df = invas_prob.transpose().describe().transpose() 
         sum_invas_time_df = invas_time.transpose().describe().transpose()
-        d2 = {year:d}
+        #create a seperate dictionary that contains all the years that the model is run
+        prop_pres_dict2 = {year:prop_pres_dict}
+        ##create a seperate dictionary that contains all the years that the model is run and have each measurement as a separate page for excel export
         year_invas[year] = {'invas_prob':invas_prob,'sum_invas_prob_df':sum_invas_prob_df,'invas_time':invas_time,'sum_invas_time_df':sum_invas_time_df,'prop_infect':prop_infect,'grid_counts':grid_df_counts}
+    
     total_invas[int_load] = year_invas
      
 print(time.process_time() - start)
@@ -397,76 +403,46 @@ print(time.process_time() - start)
 #%%
 """Write dictionary of dataframes to separate sheets, within 
     1 file."""
-    
+
 os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
 
+#Create a path to save the file including the date, number of simulations, number of years, and whether firewood timing is on or off
 from datetime import datetime
 path = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+ str(num_of_years)+'Establishment_fire_on.xls'
 
+#
 writer = pd.ExcelWriter(path, engine='xlsxwriter')
-#this names and adds each dataframe as sheet in the excel file 
+#loop through all the dataframes in the dictionary and adds each dataframe as sheet in the excel file 
 for k,v in total_invas.items():
     for k1,v1 in v.items():
         for k2,dframe in v1.items():
+            #save datafram using sheetnames as k = number of years run, k=measured main sheet name
             dframe.to_excel(writer, sheet_name=(str(k)+str(k2)))
-    #for k1,v1 in v[1].items():
-         #for k2,dframe in v1.items():
-             #v1.to_excel(writer, sheet_name=(str(k)+k2))
+
 writer.save()
 
+#create a path to save the file as including the date, number of simulations, number of years, and that's its the introduction model
 path = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+ str(num_of_years)+'Introduction.xls'
+
+# save each simualtion as a separate datasheet
 intro_writer = pd.ExcelWriter(path, engine = 'xlsxwriter')
-for k,v in d2.items():
+for k,v in prop_pres_dict2.items():
     for k1,dframe in v.items():
         dframe.to_excel(intro_writer, sheet_name=('years#'+str(k)+'_sim#'+str(k1)))
 
 intro_writer.save()
 
 #%%
-
-os.chdir('\..')
-os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
-df= pd.DataFrame()
-for k,v in total_invas.items():
-    #for dataframe in interval:
-    df[k] = v[0]['mean']
-df_coord = df.join(pd.DataFrame.from_dict(dict_pos,orient ='index')).rename(columns = {0:'lat', 1:'long'})
-from datetime import datetime
-filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+'_Mean_invasion_probability_per_year'
-df_coord.to_csv(filename)
-
-df2 = pd.DataFrame()
-for k,v in total_invas.items():
-    #for dataframe in interval:
-    df2[k] = v[1]['mean']
-df_coord = df2.join(pd.DataFrame.from_dict(dict_pos,orient ='index')).rename(columns = {0:'lat', 1:'long'})
-
-filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+'_Mean_invasion_year'
-df_coord.to_csv(filename)
-#save data to CSV file using the following format Sim_YYYY_MM_DD_####(number of simulations)
-
-
-filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)
-invas_time.to_csv(filename)
-
-print(time.process_time() - start)
-#%%
-from datetime import datetime
-os.chdir('\..')
-os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
-filename = 'Sim_'+ datetime.today().strftime('%Y-%m-%d')+'_'+ str(num_of_sims)+'_Mean_invasion_year'
-sum_invas_time_df.to_csv(filename)
-
-
-        
-#%%
+'''Run a single simulation printing an image in each year to represent the change of susceptible to established campgrounds in the model'''
 Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
 from matplotlib import pyplot as plt
 figures = []
 n= 20
+int_load = 3
 
 for i in range(n):
+    figures.append(Sim.draw())
     #filename = str(i) + '.png'
     Sim.run(1)
     #i = Sim.draw()
@@ -491,142 +467,3 @@ imageio.mimsave('movie.gif', images, duration = 0.75)
     #for filename in ['1.png', '2.png', '3.png', '4.png']:
         #image = imageio.imread(filename)
         #writer.append_data(image)
-#%% Draw the graph with node lat and long without running the simulation
-
-os.chdir('\..')
-os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding')
-
-from mpl_toolkits.basemap import Basemap
-import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
-from matplotlib.collections import PatchCollection
-import numpy as np
-#add
-pos=nx.get_node_attributes(G, 'pos')
-fig     = plt.figure()
-ax      = fig.add_subplot(111)
-
-city_nodes = [n
-   for (n, ty) in \
-      nx.get_node_attributes(G, 'Type').items() if ty == 'city_to_city']
-
-camp_nodes = [n  
-    for (n, ty) in \
-      nx.get_node_attributes(G, 'Type').items() if ty == 'city_to_camp']
-
-
-plt.rcParams['figure.dpi'] = 300
-#Create the outer edges of the image
-map = Basemap(llcrnrlon=-68.6,llcrnrlat=43.42,urcrnrlon=-59.68,urcrnrlat=48.07,resolution='l', ellps='WGS84',lat_0=-64.37, lon_0=45.73)
-# Get shapegfile data and colour it by provincs
-map.readshapefile("maritime_prov1", "states")
-patches   = []
-for info, shape in zip(map.states_info, map.states):
-    if info['Name_EN'] == 'New Brunswick' or 'Nova Scotia' or 'Prince Edward Island' :
-        patches.append( Polygon(np.array(shape), True) )
-ax.add_collection(PatchCollection(patches, facecolor= 'coral', edgecolor='k', linewidths=1., zorder=0))
-
-# add other boundaries and colour in water as blue and other states as grey
-map.drawmapboundary(fill_color='paleturquoise',zorder=-2)
-map.drawstates(linewidth=0.2)
-map.fillcontinents(color='gray',zorder=-1)
-map.drawcoastlines()
-
-#draw the network graph
-#nx.draw_networkx(G,pos=nx.get_node_attributes(G, 'pos'), with_labels=True,font_size=1,node_size=8,node_color='green', width=0.05)
-nx.draw_networkx_edges(G, pos,width=0.05 )
-nx.draw_networkx_nodes(G, pos, nodelist = city_nodes, node_shape = '^', node_size=8,node_color='green')
-nx.draw_networkx_nodes(G, pos, nodelist = camp_nodes, node_shape = 'o', node_size=8,node_color='green')
-
-#pos = nx.get_node_attributes(self.G, 'pos')
-#city_pos = nx.get_node_attributes([x for x,y in self.G.nodes(data=True) if y['Type'] == 'city_to_city'], 'pos')
-#camp_pos = nx.get_node_attributes(self.G, 'pos')
-#nx.draw_networkx_edges(self.G, pos,width=0.05 )
-#nx.draw_networkx_nodes(self.G, city_pos, nodelist = city_nodes, node_shape = 's', node_size=8, node_color = node_colors)
-#nx.draw_networkx_nodes(self.G, pos, nodelist = camp_nodes, node_shape = 'o', node_size=8, node_color = node_colors)
-
-plt.show()
-
-
-
-#%% Test Variables
-from mpl_toolkits.basemap import Basemap
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-import matplotlib.pyplot as plt
-import numpy as np
-import matplotlib.patches as mpatches
-
-
-# prep values for map extents and more
-llcrnrlat = 43.42
-llcrnrlon = -68.6
-urcrnrlat = 49
-urcrnrlon = -59.68
-mid_lon = (urcrnrlon+llcrnrlon)/2.0
-hr_lon = (urcrnrlon-llcrnrlon)/2.0
-mid_lat = (urcrnrlat+llcrnrlat)/2.0
-hr_lat = (urcrnrlat-llcrnrlat)/2.0
-
-# function to create inset axes and plot bar chart on it
-# this is good for 3 items bar chart
-def build_bar(mapx, mapy, ax, width, xvals=['a','b','c'], yvals=[1,4,2], fcolors=['r','y','b']):
-    ax_h = inset_axes(ax, width=width, \
-                    height=width, \
-                    loc=3, \
-                    bbox_to_anchor=(mapx, mapy), \
-                    bbox_transform=ax.transData, \
-                    borderpad=0, \
-                    axes_kwargs={'alpha': 0.35, 'visible': True})
-    for x,y,c in zip(xvals, yvals, fcolors):
-        ax_h.bar(x, y, label=str(x), fc=c)
-    #ax.xticks(range(len(xvals)), xvals, fontsize=10, rotation=30)
-    ax_h.axis('off')
-    return ax_h
-
-fig, ax = plt.subplots(figsize=(10, 9))  # bigger is better
-
-bm = Basemap(llcrnrlat= llcrnrlat,\
-             llcrnrlon= llcrnrlon,\
-             urcrnrlat= urcrnrlat,\
-             urcrnrlon= urcrnrlon,\
-             ax = ax,\
-             resolution='i', projection='tmerc', lon_0=-62, lat_0=45)
-    
-
-bm.drawstates(linewidth=0.2)
-bm.drawmapboundary(fill_color='paleturquoise',zorder=-2)
-bm.fillcontinents(color='lightyellow', zorder=0)
-bm.drawcoastlines(color='gray', linewidth=0.3, zorder=2)
-
-plt.title('invasion probability by year', fontsize=20)
-
-# ======================
-# make-up some locations
-# ----------------------
-n = 238   # you may use 121 here
-lon1s = df_coord['lat'].tolist()
-lat1s = df_coord['long'].tolist()
-# make-up list of 3-values data for the locations above
-# -----------------------------------------------------
-coord = df_coord.to_dict('split')
-
-
-bar_data = [item[0:3] for item in coord['data']]
-
-# create a barchart at each location in (lon1s,lat1s)
-# ---------------------------------------------------
-bar_width = 0.05  # inch
-colors = ['r','y','b']
-for ix, lon1, lat1 in zip(list(range(n)), lon1s, lat1s):
-    x1, y1 = bm(lon1, lat1)   # get data coordinates for plotting
-    bax = build_bar(x1, y1, ax, 0.2, xvals=['a','b','c'], \
-              yvals=bar_data[ix], \
-              fcolors=colors)
-
-# create legend (of the 3 classes)
-patch0 = mpatches.Patch(color=colors[0], label='5 years')
-patch1 = mpatches.Patch(color=colors[1], label='10 years')
-patch2 = mpatches.Patch(color=colors[2], label='15 years')
-ax.legend(handles=[patch0,patch1,patch2], loc=1)
-
-plt.show()
