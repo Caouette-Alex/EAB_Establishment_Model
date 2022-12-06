@@ -20,8 +20,7 @@ class Simulation:
     '''Simulate state transitions on a network'''
     invasion_step={}
 
-    def __init__(self, G, initial_state, state_transition,
-            stop_condition=None, name=''):
+    def __init__(self, G, initial_state, state_transition, name=''):
         '''
         Create a Simulation instance.
 
@@ -37,10 +36,6 @@ class Simulation:
                 and returns a dictionary of updated node states. The keys in
                 this dict should be node names and the values the corresponding
                 updated node state.
-            stop_condition (optional): function with signature
-                `stop_condition(G, current_state)` that accepts two arguments,
-                the Graph and a dictionary of current node states, and returns
-                True if the simulation should be stopped at its current state.
 
         Keyword Args:
             name (optional): a string used in titles of plots and drawings.
@@ -49,14 +44,10 @@ class Simulation:
             ValueError: if not all graph nodes have an initial state.
         '''
         
-        
+        #Create a copy of the network graph
         self.G = G.copy()
         self._initial_state = initial_state
         self._state_transition = state_transition
-        self._stop_condition = stop_condition
-        # It's okay to specify stop_condition=False
-        if stop_condition and not callable(stop_condition):
-            raise TypeError("'stop_condition' should be a function")
         self.name = name or 'Simulation'
         self._states = []
         self._value_index = {}
@@ -69,8 +60,9 @@ class Simulation:
         self._prop_infect = {}
         self._time_invas = {}
         self._prob_invas = {}
+        self._prog_pres = {}
         self._propagule_pres = {}
-        self._test = {}
+        self._test = []
         self._initialize()
         #self._intro_time = pd.DataFrame(index=self.G)
 
@@ -102,12 +94,11 @@ class Simulation:
         # We're choosing to use the node attributes as the source of truth.
         # This allows the user to manually perturb the network in between steps.
         state = nx.get_node_attributes(self.G, 'state')
-        if self._stop_condition and self._stop_condition(self.G, state):
-            raise StopCondition
-        state = nx.get_node_attributes(self.G, 'state')
-        test = self._state_transition(self.G, state)
-        new_state = test[0]
-        #new_state = self._state_transition(self.G, state)[0]
+        
+        state_in_trans = self._state_transition(self.G, state)
+        #state_in_trans[0] represents a dictionary of campgrounds that are infested
+        new_state = state_in_trans[0]
+        self._test.append(state_in_trans)
         
         
 
@@ -116,8 +107,8 @@ class Simulation:
         #This creates a dictionary to show what time period each k(node name) changes v(state) to infested 
         #For those that are already infested at step 0(Edmundston, Moncton,Fredericton, Halifax, Oromocto)
         for k, v in state.items():
-            #Create a dictionary that represents the propagule pressure of each piece of firewood arriving
-            self._test[len(self._states) - 1] =test[1]
+            #Create a dictionary that represents the propagule pressure of each piece of firewood arriving state_in_trans[1] gives the number of pieces of firewood showing up by campground by month
+            self._prog_pres[len(self._states) - 1] = state_in_trans[1]
             if v == 'I':
                 if k not in self._time_invas:
                     self._time_invas[k] = len(self._states)
@@ -324,9 +315,7 @@ class Simulation:
                     "Stop condition met at step %i." % self.steps
                     )
                 break
-    def invasion_time(self):
-        print(self._time_invas)
-    def proportion_infected(self):
-        print(self._proportion_infected)
-    def propagule_pressure(self):
-        print(self._test)
+    def test(self):
+        #print(self._test)
+        state = nx.get_node_attributes(self.G, 'state')
+        print(self._state_transition(self.G, state))

@@ -8,6 +8,7 @@ This file takes the edgelist of origin and destination locations to simulate the
  the introduction of the emerald ash borer from the firewood into local trees, and their establishment by surmounting the allee effect.
 
 
+
 To do this we use the edgelist created from (C:/Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding/Python/2-Merge_distance_to_edgelist.py) and simulate the movement of firewood
 an origin(infested city) to a destination(susceptible city or campground).
 Each simulation iteration starts with the current infested cities: Edmundston, Halifax, Fredericton, Moncton, and Oromocto and estimates the number of infested firewood leaving the origin and being distributed randomly based on weighted values.
@@ -76,6 +77,9 @@ def state_transition(G, current_state):
     
     #import random is used for the random generation of numbers
     import random
+    #parameters
+    parameter 1= 100
+    
     
     #Dictionary of destination campgrounds and cities that become infested in the next time period
     next_state={}
@@ -124,7 +128,7 @@ def state_transition(G, current_state):
                         #dict : origin_degree = {Origin(node):{Campground(neighbor): attractance}
                         #A majority of campground visits involve relatively short travel distances (<100 km, which is usually a <2-h drive from home) Koch et al. 2012 also see Eagles et al. 2015
                         #TODO _
-                        pull = (X_i*(1*(1-0.5))**(D_ij/100))
+                        pull = (X_i*(1*(1-0.5))**(D_ij/parameter))
                         pull_list.append(pull)
                         node_degree_camp[neighbor]=pull
                         origin_degree_camp[node]=node_degree_camp
@@ -311,11 +315,11 @@ start = time.process_time()
 
 #firewood = [firewood_timing_off,firewood_timing_on]
 #   specify the number of interations that you want to where num_of_sims is the number of iterations of the simulation that you want to run normal amount is 1000
-num_of_sims = 10
+num_of_sims = 1
 #   Specify the number of years that you want to test in a list like format [5,10,20] = Runs model for 5 years, 10 years, and 20 years
 num_of_years = [20] 
 #   Specify the introduced load required so that a location is considered 
-prog_pres = [2,6]
+prog_pres = [1]
 
 ###
 # Dictionary of dictionaries of dictionaries that stores all the measurements of proportion, time, and total numebr of campgrounds with established pops of EAB
@@ -361,7 +365,7 @@ for int_load in prog_pres:
             Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
             #run the simulation
             Sim.run(year)
-            
+            print(Sim._test[0][0])
             #Append each simulation time to invasion as a column in a dataframe
             invas_time[i] = invas_time.index.map(Sim._time_invas)
             
@@ -381,7 +385,7 @@ for int_load in prog_pres:
             invas_propagule['Grid_ID'] = index_col['Grid_ID']
             
             #Create a dataframe for each iteration of simluation and add them together into a dictionary
-            for k,v in Sim._test.items():
+            for k,v in Sim._prog_pres.items():
                 #for k2,v2 in v.items():
                 invas_propagule[k] = invas_propagule.index.map(v)
             prop_pres_dict[i] = invas_propagule
