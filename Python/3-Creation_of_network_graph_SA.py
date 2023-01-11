@@ -81,6 +81,14 @@ def state_transition(G, current_state):
     halving_distance = X[0]
     incidence_live_borers = X[1]
     firewood_source = X[2]
+    res_slope=X[3]
+    int_load=X[4]
+    res_intercept=6.24567023 
+    
+    #Supply rate of EAB from unburnt firewood. Calculated using the equation from the file Relationship_firewood_burn_vs_emergence_probability.py
+    sup_rate_EAB={'May':0.0635, 'June':0.269, 'July':0.391, 'August':0.0694, 'September':0.002, 'October': 0}
+    
+    reservations_month = {'May':109.4,'June':619.67, 'July':1521.83, 'August':1583.33, 'September':559.3,'October':62} 
     
     #Dictionary of destination campgrounds and cities that become infested in the next time period
     next_state={}
@@ -104,7 +112,7 @@ def state_transition(G, current_state):
                 #Measures the total number of campers going to campgrounds in all three provinces = (reservations to within province campgrounds)+ (reservations to outside province campgrounds)
                 #number of infected campers from Origin location using the follwing equation (Number of people making reservations from inf. city)*proportion of reservations made within province*(prop. of campgrounds in province*total campgrounds)+
                 #(Number of people making reservations from inf. city)*proportion of reservations made outside of province*(prop. of campgrounds outside of province province*total campgrounds)
-                nx.set_node_attributes(G,{node:(((G.nodes[node]['Population']*0.0016729+6.24567023)*0.85*(0.3333*210)+(G.nodes[node]['Population']*0.0016729+6.24567023)*0.15*(0.6666*210))*prob_infested_wood)},'Infected_camper')
+                nx.set_node_attributes(G,{node:(((G.nodes[node]['Population']*res_slope+res_intercept)*0.85*(0.3333*210)+(G.nodes[node]['Population']*res_slope+res_intercept)*0.15*(0.6666*210))*prob_infested_wood)},'Infected_camper')
 
                 #Get total campground attractance from all neighbour nodes
                 degree[node]= G.degree(node, weight='Campground_pull')
@@ -207,7 +215,7 @@ def state_transition(G, current_state):
     ###
     
     #Dictionary of the mean number of reservations made based on the month 
-    reservations_month = {'May':109.4,'June':619.67, 'July':1521.83, 'August':1583.33, 'September':559.3,'October':62}                   
+                      
     
     firewood_dispersal = {}
     #Iterate through each susceptible node that received firewood and distribute the firewood based on mean monthly reservations made to campgrounds
@@ -222,11 +230,7 @@ def state_transition(G, current_state):
     #Count the total number of pieces of firewood distributed to each month
     for k,v in firewood_dispersal.items():
         firewood_dispersal[k] = dict(Counter(v))
-    
-    #Supply rate of EAB from unburnt firewood. Calculated using the equation from the file Relationship_firewood_burn_vs_emergence_probability.py
-    sup_rate_EAB={'May':0.0635, 'June':0.269, 'July':0.391, 'August':0.0694, 'September':0.002, 'October': 0}
-    
-    
+
     
     ###
     #Distribute firewood arriving into campground based on month of arrival change the status of the campground based on the number of introduced load(propagule pressure)
@@ -316,13 +320,14 @@ from SALib.test_functions import Ishigami
 import numpy as np
 
 
-problem = {'num_vars': 3,
-           'names': ['halving_distance', 'incidence_live_borers', 'firewood_source'],
+problem = {'num_vars': 5,
+           'names': ['halving_distance', 'incidence_live_borers', 'firewood_source','res_slope','int_load'],
            'bounds': [[100, 250],
-               [0, 0.2],
-               [0.2, 0.5]]}
+               [0.1,0.2],
+               [0.2, 0.5],[0.001,0.002],[1,15]
+               ]}
 
-int_load = 1
+#int_load = 6
 
 param_values = sob.sample(problem, 2)
 
