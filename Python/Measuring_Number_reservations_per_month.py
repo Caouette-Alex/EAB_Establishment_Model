@@ -31,7 +31,7 @@ for year,df in camp_dict.items():
 d = { k: v.set_index('Month_') for k, v in month_res_df.items()}
 df = pd.concat(d, axis= 1)
 df= df.rename(index={5:'May',6:'June',7:'July',8:'August', 9:'September',10:'October'})
-#df = df.drop(columns=2020)
+df = df.drop(columns=2020)
 
 #Represent the dataframe similar as df but more cleaned up and with mean and standard error
 df_short = df
@@ -43,7 +43,7 @@ df_short['ste'] = df_short.sem(axis=1,skipna=True)
 
 #Create a dataframe in longview format to represent number of reservations each year 
 df_long = df.reset_index()
-df_long = pd.melt(df_long, id_vars='Month_', value_vars=[2015, 2016, 2017,2018,2019,2020])
+df_long = pd.melt(df_long, id_vars='Month_', value_vars=[2015, 2016, 2017,2018, 2019])
 df_long=df_long.rename(columns={'variable':'year', 'value':'reservations'})
 
 
@@ -51,15 +51,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 #Create a figure that represents teh number of reservations made each month based on the year that the reservation was made
-plt.figure(figsize = (20,10))
+plt.figure(figsize = (20,10), dpi = 300)
 ax =sns.barplot(data=df_long,x= 'Month_',y='reservations', hue ='year' )
 plt.show()
 
 
 
-#Create a figure that represents the mean number of reservations  
+#Create a figure that represents the mean number of reservations
 ax = sns.barplot(data = df_short, x= df_short.index, y = 'mean', color=sns.color_palette('pastel')[0])
 ax.errorbar(x =[0,1,2,3,4,5], y = df_short['mean'], yerr = df_short['ste'],fmt='none',c = 'k')
 ax.set_ylabel('Mean reservations/year')
 ax.set_xlabel('Month')
-plt.show()
+plt.savefig('Montly_reservations.jpg', dpi = 300)

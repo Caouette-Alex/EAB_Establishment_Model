@@ -81,13 +81,17 @@ def state_transition(G, current_state):
     halving_distance = X[0]
     incidence_live_borers = X[1]
     firewood_source = X[2]
+    #The number of reservations made here is based on the calculation of number of reservations made to a single campground per year to provincial campgrounds using this equation Population_campground_reserv_NB.py
     res_slope=X[3]
-    int_load=X[4]
     res_intercept=6.24567023 
+    
+    int_load=X[4]
+    
+    
     
     #Supply rate of EAB from unburnt firewood. Calculated using the equation from the file Relationship_firewood_burn_vs_emergence_probability.py
     sup_rate_EAB={'May':0.0635, 'June':0.269, 'July':0.391, 'August':0.0694, 'September':0.002, 'October': 0}
-    
+    #NUmber of reservations made per month based on the provincial measurement of reservations made calculated using Measuring_Number_reservations_per_month.py
     reservations_month = {'May':109.4,'June':619.67, 'July':1521.83, 'August':1583.33, 'September':559.3,'October':62} 
     
     #Dictionary of destination campgrounds and cities that become infested in the next time period

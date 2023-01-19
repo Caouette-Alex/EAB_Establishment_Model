@@ -124,5 +124,5 @@ for k,v in d.items():
 import os 
 os.chdir('\..')
 os.chdir("Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results")
-plt.savefig('probability_EAB_emergence_from_unburned_firewood',bbox_inches='tight',dpi=300)
+plt.savefig('probability_EAB_emergence_from_unburned_firewood_joined',bbox_inches='tight',dpi=300)
 plt.show()
