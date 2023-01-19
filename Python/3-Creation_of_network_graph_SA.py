@@ -5,14 +5,14 @@ Created on Fri Nov 12 11:13:42 2021
 @author: alexp
 
 This file takes the edgelist of origin and destination locations to simulate the probability that a location see's the transportation of invasive buprestid infested firewood by human movement,
- the introduction of the emerald ash borer from the firewood into local trees, and their establishment by surmounting the allee effect.
+ the introduction of the emerald ash borer from the firewood, and their establishment by survival and surmounting the Allee effect.
 
 
 
 To do this we use the edgelist created from (C:/Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding/Python/2-Merge_distance_to_edgelist.py) and simulate the movement of firewood
 an origin(infested city) to a destination(susceptible city or campground).
 Each simulation iteration starts with the current infested cities: Edmundston, Halifax, Fredericton, Moncton, and Oromocto and estimates the number of infested firewood leaving the origin and being distributed randomly based on weighted values.
-We then extract data from the simulations into dataframes, including the transportation of firewood to destination after set period of time, the time to the first transportation of firewood, the number of propagules per year
+We then extract the probability that emerald ash borer establishes at campgrounds based on data from the simulations into dataframes, the time to the first transportation of firewood,the number of pieces of firewood that see emerald ash borer emergence and the number of emergences required in a single month for populations to establish.
 """
 #%% Import packages and add edgelist dataframe
 
@@ -24,7 +24,8 @@ os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Coding/Python')
 import pandas as pd
 import networkx as nx
-#imported from files from the book by filippo Menczer, Santo Fortunato, and Clayton Davies A first Course in Network Science
+
+#B_Simulation was imported from files from the book by Filippo Menczer, Santo Fortunato, and Clayton Davies A first Course in Network Science. I have heavilty modified this file to suit my needs
 from B_Simulation import Simulation
 
 #Change directory to open to where the majority of the data is
@@ -44,12 +45,13 @@ G = nx.from_pandas_edgelist(edgelist_df,source='Orig_name',target='Dest_name',ed
 dict_pos=dict(zip(edgelist_df.Dest_name,list(zip(edgelist_df.Dest_long,edgelist_df.Dest_lat))))
 dict_pos.update(dict(zip(edgelist_df.Orig_name,list(zip(edgelist_df.Orig_long,edgelist_df.Orig_lat)))))
 nx.set_node_attributes(G, dict_pos, 'pos')
-#Adding node attributes to origin locations and destination locations including the site population, number of campsites, and type of edge relationship(city-city vs. city-camp)
+
+#Adding node attributes to origin locations and destination locations including the site population, number of campsites, and type of edge relationship(city-city vs. city-camp), Grid ID(Corresponding campground location within hexagons in the model)
 nx.set_node_attributes(G, dict(zip(edgelist_df['Orig_name'],edgelist_df['Orig_pop'])),'Population')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['Sites'])),'Sites')
 nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['type'])),'Type')# might need to change this to an edge attribute
 nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['Grid_ID'])),'Grid_ID')
-# 
+
 
 
 
@@ -59,15 +61,18 @@ nx.set_node_attributes(G, dict(zip(edgelist_df['Dest_name'],edgelist_df['Grid_ID
 #Define functions for the initial state(start of the model) of infested locations from non-infested ones and define the transition state(what happens each year thereafter)
 ###
 
-#initial state defines cities that are infested, this is a fixed set of locations: Edmundston, Halifax, Fredericton, Oromocto, and Moncton
+#Initial state defines cities that are infested, this is a fixed set of locations: Edmundston, Halifax, Fredericton, Oromocto, and Moncton
 def initial_state(G):
     state = {}
+    
     inf_cities = 'Edmundston','Halifax', 'Fredericton', 'Moncton', 'Oromocto'
+    
     for node in G.nodes:
         if node in inf_cities:
             state[node] = 'I'
         else:
             state[node] = 'S'
+    #set initial state values based on 'I' Infected or 'S' Susceptible as a node attribute
     nx.set_node_attributes(G,state,'State')
     return state
 
@@ -78,21 +83,31 @@ def state_transition(G, current_state):
     #import random is used for the random generation of numbers
     import random
     #parameters
+    
+    #Halving distance is the distance at which people travel where number of reservations is half at that distance
+    #A majority of campground visits involve relatively short travel distances (<100 km, which is usually a <2-h drive from home) Koch et al. 2012 also see Eagles et al. 2015
     halving_distance = X[0]
+    
+    #incidence that firewood would contain emerald ash borer in it: function of the probability that firewood is ash and wood has live insects in it (percent wood fraxinus:0.1455, percent with live borers:0.34)  Haack et al. 2010
     incidence_live_borers = X[1]
+   
+    #Probability that someone brings firewood and that it could infest the campground: Function that campers bring their own firewood and that the source comes from outside of the campground (0.66 of campers bring their own firewood, of that the source is that outside park:0.25, from home:0.17,cut of collected from another area:0.14)Jacobi et al. 2011, and
     firewood_source = X[2]
+    
     #The number of reservations made here is based on the calculation of number of reservations made to a single campground per year to provincial campgrounds using this equation Population_campground_reserv_NB.py
+    #the generated values are y= 0.0016729 x+ 6.24567023
     res_slope=X[3]
     res_intercept=6.24567023 
     
+    #Propagule pressure threshold is the number of pieces of firewood needed to arrive in a single month for a location to see the establishment of the emerald ash borer
     int_load=X[4]
     
-    
+    #Number of reservations made per month based on the provincial measurement of reservations made calculated using Measuring_Number_reservations_per_month.py
+    reservations_month = {'May':109.4,'June':619.67, 'July':1521.83, 'August':1583.33, 'September':559.3,'October':62} 
     
     #Supply rate of EAB from unburnt firewood. Calculated using the equation from the file Relationship_firewood_burn_vs_emergence_probability.py
     sup_rate_EAB={'May':0.0635, 'June':0.269, 'July':0.391, 'August':0.0694, 'September':0.002, 'October': 0}
-    #NUmber of reservations made per month based on the provincial measurement of reservations made calculated using Measuring_Number_reservations_per_month.py
-    reservations_month = {'May':109.4,'June':619.67, 'July':1521.83, 'August':1583.33, 'September':559.3,'October':62} 
+    
     
     #Dictionary of destination campgrounds and cities that become infested in the next time period
     next_state={}
@@ -105,7 +120,7 @@ def state_transition(G, current_state):
     #Per capita value is a source of number of reservations taken from a national system 
     #per_capita_value=0.0047
     
-    #Firewood source(0.66 of campers bring their own firewood, of that the source is that outside park:0.25, from home:0.17,cut of collected from another area:0.14)Jacobi et al. 2011, and and incident that wood has live insects in it (percent wood fraxinus:0.1455, percent with live borers:0.34)  Haack et al. 2010
+    
     prob_infested_wood= incidence_live_borers*firewood_source
     #Iterate through each node splitting the two by infected and uninfected nodes 
     for node in G.nodes:
@@ -123,8 +138,9 @@ def state_transition(G, current_state):
                 nx.set_node_attributes(G, degree,'in_degree')
                 num_inf_camper[node]=round(G.nodes[node]['Infected_camper'])
                 
-                
+                #Dictionary of the attractance values for all the campgrounds
                 node_degree_camp={}
+                #Dictionary of the attractance values for all the non infested cities
                 node_degree_city={}
                 pull_list=[]
                 
@@ -139,14 +155,15 @@ def state_transition(G, current_state):
                         
                         #Calculate attractance value (Pull) load them into a dictionary of dictionary for each infected node
                         #dict : origin_degree = {Origin(node):{Campground(neighbor): attractance}
-                        #A majority of campground visits involve relatively short travel distances (<100 km, which is usually a <2-h drive from home) Koch et al. 2012 also see Eagles et al. 2015
-                        #TODO _
+                        
+                        #Pull is the attractance value that a campground has based on the campground size(campsites)* logistic decay of distance based on the reservation behaviour of campers
                         pull = (X_i*(1*(1-0.5))**(D_ij/halving_distance))
                         pull_list.append(pull)
                         node_degree_camp[neighbor]=pull
                         origin_degree_camp[node]=node_degree_camp
                         #cities:
                     else : 
+                        #poplation of each city in the area
                         P_j=G.nodes[neighbor]['Population']
                         #Mean number of trips made from county A to county B
                         M_ij=G.edges[neighbor,node]['mean_trips_year']
@@ -159,7 +176,7 @@ def state_transition(G, current_state):
                         origin_degree_city[node]=node_degree_city          
        
 ###  
-#Distribute infected campers to campgrounds based on gravity values
+#Distribute infected campers to campgrounds based on attractance values
 ###                  
     #create a list containing the names of locations that become infected    
     infected=[]
@@ -312,18 +329,16 @@ def state_transition(G, current_state):
 
 
 
-#%% Run simulations 
+#%% Run simulations using the sensitivity analysis
 import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-###
+#Import Sensitivty analysis package SOBOL to measure the impact of parameters  
 from SALib.sample import sobol as sob
 from SALib.analyze import sobol as sob1
-from SALib.test_functions import Ishigami
-import numpy as np
 
-
+#Define the model inputs, which is each parameter that we want to vary, with this we measure the ranges that we believe that each value may be
 problem = {'num_vars': 5,
            'names': ['halving_distance', 'incidence_live_borers', 'firewood_source','res_slope','int_load'],
            'bounds': [[100, 250],
@@ -331,10 +346,10 @@ problem = {'num_vars': 5,
                [0.2, 0.5],[0.001,0.002],[1,15]
                ]}
 
-#int_load = 6
-
+#generate samples, creates a numpy matrix with the shape N*(2D+2) N=argument supplied D=the number of model inputs
 param_values = sob.sample(problem, 2)
 
+#run model
 Y = np.zeros([param_values.shape[0]])
 grid_list = []
 #Create a list that contains all the grid values from the hexagons
@@ -352,6 +367,8 @@ grid_df_counts = grid_df_counts[grid_df_counts['total_counts'].notna()]
 
 grid_df_count = pd.DataFrame(index= grid_df_counts.index)
 
+#Iterate through the values of each row in the parameter values where i is the row number and X is the array of parameter values
+#This runs the simulation once for each set of parameter counts and outputs a dataframe of the proportion of locations that are established based on the 
 for i, X in enumerate(param_values):
     #print(X[0])
     Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
@@ -363,16 +380,19 @@ for i, X in enumerate(param_values):
     grid_df_counts = grid_df_counts.mask(grid_df_counts> 1, 1)
     grid_df_count[i] = grid_df_counts[i+1]
 
+#calculate the proportion of locations that see emerald ash borer establishment for each iteration of the simulation 
 grid_df_describe = grid_df_count.fillna(0).describe().transpose()
 
+#add the output values to the Y array
 for index, row in grid_df_describe.iterrows(): 
     
     Y[index]=row['mean']
     
- #%%
+#%%Analyze the outputs for the model
+#Calculate the first, second, and total order indices of the output for the model. 
 Si = sob1.analyze(problem, Y)
 print(Si['S1'])
- #%%
+#%% Classic simulation(Not necessary for the sensitivity analysis)
  ###
 start = time.process_time()
 
@@ -469,7 +489,7 @@ for int_load in prog_pres:
      
 print(time.process_time() - start)
 
-#%%
+#%% Write output to dictionary
 """Write dictionary of dataframes to separate sheets, within 
     1 file."""
 
@@ -502,7 +522,7 @@ for k,v in prop_pres_dict2.items():
 
 intro_writer.save()
 
-#%%
+#%% Create a gif of a single simulation of the model for visualization
 '''Run a single simulation printing an image in each year to represent the change of susceptible to established campgrounds in the model'''
 Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
 from matplotlib import pyplot as plt

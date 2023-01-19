@@ -46,26 +46,33 @@ class Simulation:
         
         #Create a copy of the network graph
         self.G = G.copy()
+        
         self._initial_state = initial_state
         self._state_transition = state_transition
+        
         self.name = name or 'Simulation'
         self._states = []
         self._value_index = {}
+        
         from matplotlib.colors import LinearSegmentedColormap
         #choose the colours for the colour map
         cmap = LinearSegmentedColormap.from_list('my_list',['#d62728','#6e8f6e'] , N=2)
         self._cmap = plt.cm.get_cmap(cmap)
         
+        #create dictionaries to represent different outputs of interest
         self._grid_invas = {}
         self._prop_infect = {}
         self._time_invas = {}
         self._prob_invas = {}
         self._prog_pres = {}
         self._propagule_pres = {}
-        self._test = []
+        
+        self._inf_camp = []
+        
         self._initialize()
         #self._intro_time = pd.DataFrame(index=self.G)
-
+        
+        #Get spatial characteristics of the model
         self._pos = nx.get_node_attributes(G, 'pos')
         self._grid_id = nx.get_node_attributes(G, 'Grid_ID')
         
@@ -89,16 +96,22 @@ class Simulation:
 
         self._append_state(state)
 
+
+    #iterate through a single year. in this case we go through the class state transition once that's found in the file 3-Creation_of_Network_graph.py
     def _step(self):
     
         # We're choosing to use the node attributes as the source of truth.
         # This allows the user to manually perturb the network in between steps.
+        
+        #state of all the nodes at that step
         state = nx.get_node_attributes(self.G, 'state')
+        
         
         state_in_trans = self._state_transition(self.G, state)
         #state_in_trans[0] represents a dictionary of campgrounds that are infested
         new_state = state_in_trans[0]
-        self._test.append(state_in_trans)
+        
+        self._inf_camp.append(state_in_trans)
         
         
 
@@ -115,15 +128,22 @@ class Simulation:
                     self._prob_invas[k] = 1
                     
         for k, v in new_state.items():
+            
             if k not in self._time_invas:
+            #Timepoint at which the campground becomes infested.
               self._time_invas[k] = len(self._states)
+            # Measures a 1 or 0 if the location becomes infested
               self._prob_invas[k] = 1
+            # Print the Grid ID value if the locations becomes established
               self._grid_invas[k] = nx.get_node_attributes(self.G, 'Grid_ID')[k]
         
+        
+        #update the state of the nodes based on the new state values 
         state.update(new_state)
         nx.set_node_attributes(self.G, state, 'state')
         self._append_state(state)
         
+        #Measure the proportion of infested campgrounds based on the total number of campgrounds
         self._prop_infect[len(self._states)-1] = list(state.values()).count('I')
 
     def _categorical_color(self, value):
