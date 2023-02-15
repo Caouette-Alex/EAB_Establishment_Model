@@ -343,7 +343,7 @@ for i, X in enumerate(param_values):
     Y[i] = Sim.run(20)
     print(Y, i, X)
 ###
-start = time.process_time()
+
 #%%
 # Run the simulation
 
@@ -360,6 +360,8 @@ prog_pres = [1]
 # The dictionary has the following structure k1:k2:k3:v3 where k1 = Introduced load(propagule pressure), k2 = is the number of years the simulation runs for, k3 = are the names of dataframes
 # Invasion probability(campground infested or not), Invas_time(time point that the campground became infested), Prop_infect(proportion of campgrounds becoming infested based on the year of infestation), descriptive stats of both invas_prob and invas_year
 ###
+
+start = time.process_time()
 
 total_invas = {}
 grid_list = []
@@ -401,7 +403,7 @@ for int_load in prog_pres:
                              name='EAB network model')
             # run the simulation
             Sim.run(year)
-
+            
             # Append each simulation time to invasion as a column in a dataframe
             invas_time[i] = invas_time.index.map(Sim._time_invas)
 

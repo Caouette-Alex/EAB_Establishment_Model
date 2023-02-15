@@ -347,7 +347,7 @@ problem = {'num_vars': 5,
                ]}
 
 #generate samples, creates a numpy matrix with the shape N*(2D+2) N=argument supplied D=the number of model inputs
-param_values = sob.sample(problem, 2)
+param_values = sob.sample(problem, )
 
 #run model
 Y = np.zeros([param_values.shape[0]])

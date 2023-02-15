@@ -1,19 +1,29 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec  2 19:37:35 2022
+Created on Mon Jan 23 09:11:13 2023
 
 @author: alexp
 """
-import os
-import pandas as pd
+from matplotlib import pyplot as plt
+import numpy as np
+from scipy.stats import norm
+import statistics
+import seaborn as sns
+
+cutoff = [3,5,7]
+test = [0.2,0.5,1]
+for cutoff in cutoff:
+    pieces = [1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5,8,8.5,9,9.5,10]
+    plt.plot(pieces,(([0.5*(1-np.tanh(0.5*(i-cutoff))) for i in pieces])))
+    plt.xlabel('firewood arrival')
+    plt.ylabel('probability of establishment')
+    plt.show()
 
 
-os.chdir('\..')
-os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model')
 
-#import campground reservation dataset
-camp_res_month = pd.read_csv('Arcmap/Camping_reservations/NB_campground_reservations.csv')
-
-camp_dict = {}
-for year, df_year in camp_res_month.groupby('Year_'):
-    camp_dict[year] = df_year
+#month= [109, 619, 1521, 1583, 559, 62]
+#mean = statistics.mean(month)
+#sd = statistics.stdev(month)
+#x = [5,6,7,8,9,10]
+#plt.plot(x,norm.pdf(month,mean,sd))
+#sns.distplot(x=x, y=month)

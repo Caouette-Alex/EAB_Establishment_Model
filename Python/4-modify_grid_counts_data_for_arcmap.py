@@ -52,6 +52,8 @@ for k,v in d_3.items():
     name = k
     test[name] = mean_val
 
+
+
 test = test.transpose()
 #%%
 c = sns.color_palette('pastel')[0]
@@ -107,3 +109,50 @@ ax[0].set_ylabel('Mean proportion of established hexagons')
 #ax[1].spines['left'].set_visible(False)
 #ax[1].tick_params(left=False)
 plt.savefig('Model_results/Mean_proportion_establishment_split.png', dpi=300)
+#%%
+d_4 = {}
+temp2= {}
+for k,v in d.items():
+    v = v.mask(v > 1, 1)
+    v = v[v['total_counts'].notna()].fillna(0)
+    n_v = v.drop(columns = 'total_counts')
+    temp = {}
+    for k2,v2 in n_v.items():
+        temp[k2] = sum(v2)/53
+    temp2[k] = temp
+df = pd.DataFrame(temp2.values(),temp2.keys()).transpose()
+print(df.describe())
+
+import scipy.stats as stats
+from scipy.stats import tukey_hsd
+# stats f_oneway functions takes the groups as input and returns ANOVA F and p value
+fvalue, pvalue = stats.f_oneway(df['Low'], df['High'], df['FT_Low'], df['FT_High'])
+print(fvalue, pvalue)
+
+
+print(tukey_hsd(df['Low'], df['High'], df['FT_Low'], df['FT_High']))
+
+#%%
+
+df_long = pd.melt(df,value_vars = ['Low', 'High', 'FT_Low', 'FT_High'])
+
+df_long['Firewood_timing'] = ''
+df_long['Propagule_pressure'] = ''
+
+df_long.loc[df_long['variable'] == 'Low', ['Firewood_timing','Propagule_pressure']] = ['Ignore', 'Low']
+df_long.loc[df_long['variable'] == 'High', ['Firewood_timing','Propagule_pressure']] = ['Ignore', 'High']
+df_long.loc[df_long['variable'] == 'FT_Low', ['Firewood_timing','Propagule_pressure']] = ['Consider', 'Low']
+df_long.loc[df_long['variable'] == 'FT_High', ['Firewood_timing','Propagule_pressure']] = ['Consider', 'High']
+
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+
+#perform two-way ANOVA
+model = ols('value ~ C(Firewood_timing) + C(Propagule_pressure) + C(Firewood_timing):C(Propagule_pressure)', data=df_long).fit()
+sm.stats.anova_lm(model, typ=2)
+
+
+
+#for index, row in df_long.iterrows():
+    #if row['variable'] == 'Low':
+       #row['Firewood timing'] = 'ignored'
