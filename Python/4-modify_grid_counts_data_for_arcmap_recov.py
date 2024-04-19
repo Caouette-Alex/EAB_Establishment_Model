@@ -41,23 +41,33 @@ for k,v in d.items():
     v = v.mask(v > 1, 1)
     #drop all hexagons that have a value of NA meaning there are no campgrounds there
     v = v[v['total_counts'].notna()]
+    print(v)
+    #v = v.drop(columns='total_counts')
     #get proportion of hexagons that have EAB establishment 
-    d_3[k] = v.fillna(0).describe()
+    d_3[k] = v.fillna(0).describe().drop(columns='total_counts').transpose()
+
+d_3['Low']['FTI']='Ignore'
+d_3['FT_Low']['FTI']='Consider'
+
+d_3['High']['FTI']='Ignore'
+d_3['FT_High']['FTI']='Consider'
+
+d_3_Low=pd.concat([d_3['Low'],d_3['FT_Low']])
+d_3_High=pd.concat([d_3['High'],d_3['FT_High']])
+
+#test = pd.DataFrame()
+#for k,v in d_3.items():
+    #mean_val = v.drop(columns='total_counts').transpose()
+    #mean_val = mean_val['mean'].describe().drop(columns='total_counts')
+    #name = k
+    #test[name] = mean_val
 
 
-test = pd.DataFrame()
-for k,v in d_3.items():
-    mean_val = v.drop(columns='total_counts').transpose()
-    mean_val = mean_val['mean'].describe()
-    name = k
-    test[name] = mean_val
 
-
-
-test = test.transpose()
-#%%
-c = sns.color_palette('pastel')[0]
-c2 = sns.color_palette('pastel')[1]   
+#test = test.transpose()
+ #%%
+c = 'dimgray'
+c2 = 'dimgray'   
 sns.reset_orig()
 
 fig, ax = plt.subplots()
@@ -93,11 +103,16 @@ ax[0].bar(['Consider FTI'], test['mean'].loc[['FT_Low']], color = c2, label = 'I
 ax[1].bar(['Ignore FTI'], test['mean'].loc[['High']], color = c, label = 'Ignoring timing of firewood arrival')
 ax[1].bar(['Consider FTI'], test['mean'].loc[['FT_High']], color = c2, label = 'Ignoring timing of firewood arrival')
 
-ax[0].errorbar(x =[0,1], y = test['mean'].loc[['Low','FT_Low']], yerr = test['std'].loc[['Low','FT_Low']],fmt='none',c = 'k')
-ax[1].errorbar(x =[0,1], y = test['mean'].loc[['High','FT_High']], yerr = test['std'].loc[['High','FT_High']],fmt='none',c = 'k')
+ax[0].errorbar(x =[0,1], y = test['mean'].loc[['Low','FT_Low']], yerr = test['std'].loc[['Low','FT_Low']],fmt='none',c = 'k', capsize = 3)
+ax[1].errorbar(x =[0,1], y = test['mean'].loc[['High','FT_High']], yerr = test['std'].loc[['High','FT_High']],fmt='none',c = 'k', capsize = 3)
 
-ax[0].title.set_text('Low \n Propagule Pressure Threshold')
-ax[1].title.set_text('High \n Propagule Pressure Threshold')
+fig.suptitle('Propagule Pressure Threshold', fontsize=14,y = 1.05)
+
+ax[0].title.set_text('Low')
+ax[1].title.set_text('High')
+
+ax[0].set_xticklabels(['Ignore FTI', 'Consider FTI'], fontsize=12)
+ax[1].set_xticklabels(['Ignore FTI', 'Consider FTI'], fontsize=12)
 
 ax[0].spines['right'].set_visible(False)
 ax[0].spines['top'].set_visible(False)
@@ -105,8 +120,10 @@ ax[0].spines['top'].set_visible(False)
 ax[1].spines['right'].set_visible(False)
 ax[1].spines['top'].set_visible(False)
 
-ax[0].set_ylabel('Mean proportion of established hexagons')
-#ax[1].spines['left'].set_visible(False)
+ax[0].set_ylabel('Mean proportion of established hexagons',fontsize=12)
+ax[1].spines['right'].set_visible(False)
+
+
 #ax[1].tick_params(left=False)
 plt.savefig('Model_results/Mean_proportion_establishment_split.png', dpi=300)
 #%%
@@ -149,10 +166,46 @@ from statsmodels.formula.api import ols
 
 #perform two-way ANOVA
 model = ols('value ~ C(Firewood_timing) + C(Propagule_pressure) + C(Firewood_timing):C(Propagule_pressure)', data=df_long).fit()
-sm.stats.anova_lm(model, typ=2)
-
+result = sm.stats.anova_lm(model, typ=2)
+result.to_csv('Model_results/two_way_anova_local_sensitivity_analysis.csv')
 
 
 #for index, row in df_long.iterrows():
     #if row['variable'] == 'Low':
        #row['Firewood timing'] = 'ignored'
+#%%
+import seaborn as sns
+
+#print(test.iloc[[0,2],[1]])
+fig, ax = plt.subplots(1,2, sharey=True)
+
+#ax[0].bar(['Ignore FTI','Consider FTI'], test['mean'].loc[['Low','FT_Low']], color = c, label = 'Ignoring timing of firewood arrival')
+sns.violinplot(ax=ax[0], data=d_3_Low , y='mean',x='FTI',color='grey',).tick_params(bottom=False)
+sns.violinplot(ax=ax[1], data=d_3_High , y='mean',x='FTI', color='grey')
+
+
+fig.suptitle('Propagule Pressure Threshold', fontsize=14,y = 1.05)
+
+ax[0].title.set_text('Low')
+ax[1].title.set_text('High')
+
+#ax[0].suptitle('')
+
+ax[0].set_xlabel('')
+ax[1].set_xlabel('')
+
+ax[0].set_xticklabels(['Ignore FTI', 'Consider FTI'], fontsize=12)
+ax[1].set_xticklabels(['Ignore FTI', 'Consider FTI'], fontsize=12)
+
+ax[0].spines['right'].set_visible(False)
+ax[0].spines['top'].set_visible(False)
+
+ax[1].spines['right'].set_visible(False)
+ax[1].spines['top'].set_visible(False)
+
+ax[0].set_ylabel('Mean proportion of established hexagons',fontsize=12)
+ax[1].spines['right'].set_visible(False)
+
+
+#ax[1].tick_params(left=False)
+plt.savefig('Model_results/Mean_proportion_establishment_split.png', dpi=300)

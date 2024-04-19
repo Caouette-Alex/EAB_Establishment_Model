@@ -1,7 +1,8 @@
 '''
-Simulation class for Chapter 7 Tutorial of Intro Network Science book
+Simulation class that changes states of campgrounds based on movmeent of firewood from cities to campgrounds 
 
-Copyright 2018 Indiana University and Cambridge University Press
+The example from the Chapter 7 Tutorial was used as a basis from the book Intro Network Science book
+        Copyright 2018 Indiana University and Cambridge University Press
 '''
 #
 
@@ -47,10 +48,11 @@ class Simulation:
         #Create a copy of the network graph
         self.G = G.copy()
         
+        #Create instance for the initial state of the model and the transitions between states
         self._initial_state = initial_state
         self._state_transition = state_transition
         
-        self.name = name or 'Simulation'
+        #create instance that lists the current state of each node (Infected or susceptible) 
         self._states = []
         self._value_index = {}
         
@@ -78,11 +80,14 @@ class Simulation:
         
     def _append_state(self, state):
         self._states.append(state)
-        # Update self._value_index
-        for value in set(state.values()):
-            if value not in self._value_index:
-                self._value_index[value] = len(self._value_index)
-
+        
+        #Update self._value_index
+        #for value in set(state.values()):
+           #print(value)
+           #if value not in self._value_index:
+               #self._value_index[value] = len(self._value_index)
+        
+        
     def _initialize(self):
         if self._initial_state:
             if callable(self._initial_state):

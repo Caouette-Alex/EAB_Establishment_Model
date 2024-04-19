@@ -82,6 +82,7 @@ def state_transition(G, current_state):
     
     #import random is used for the random generation of numbers
     import random
+    from scipy.special import gamma as gamma
     #parameters
     
     #Halving distance is the distance at which people travel where number of reservations is half at that distance
@@ -103,10 +104,37 @@ def state_transition(G, current_state):
     int_load=X[4]
     
     #Number of reservations made per month based on the provincial measurement of reservations made calculated using Measuring_Number_reservations_per_month.py
-    reservations_month = {'May':109.4,'June':619.67, 'July':1521.83, 'August':1583.33, 'September':559.3,'October':62} 
+    alpha=7.483
+    beta=X[5]
+    sigma=X[6]
+    reservations_month = {}
+    months = {'May':5,'June':6,'July':7,'August':8,'September':9,'October':10}
+    for month,value in months.items():    
+        reservations_month[month]=(beta/(2*sigma*gamma(1/beta)))*np.exp(-(abs((value-alpha)/sigma))**beta)*4456
+    
+    #reservations_month = {'May':109.4,'June':619.67, 'July':1521.83, 'August':1583.33, 'September':559.3,'October':62} 
     
     #Supply rate of EAB from unburnt firewood. Calculated using the equation from the file Relationship_firewood_burn_vs_emergence_probability.py
-    sup_rate_EAB={'May':0.0635, 'June':0.269, 'July':0.391, 'August':0.0694, 'September':0.002, 'October': 0}
+    E = X[7]
+    Q = X[8]
+    
+    julian_day = np.linspace(0, 439, 439)
+    y = (1 / (1 + np.exp(-(-0.135*((julian_day)-208)))))*((1-(-0.009*(julian_day)+2.22)*E))
+    julian_day_1 = julian_day + Q
+    
+    mon_jul_day = {'May':[135,151],'June':[152,181],'July':[182,212],'August':[213,243], 'September':[244,273],'October': [274,282]}
+    sup_rate_EAB = {}
+    
+    for k,v in mon_jul_day.items():
+        indices = np.where((julian_day_1 >= v[0]) & (julian_day_1 <=v[1]))
+        
+        trap = np.trapz(y[indices])
+        sup_rate_EAB[k] = trap
+    for k, v in sup_rate_EAB.items():
+      if v < 0:sup_rate_EAB[k]=0
+    
+    
+    #sup_rate_EAB={'May':0.0635, 'June':0.269, 'July':0.391, 'August':0.0694, 'September':0.002, 'October': 0}
     
     
     #Dictionary of destination campgrounds and cities that become infested in the next time period
@@ -307,10 +335,15 @@ def state_transition(G, current_state):
                                     #add that firewood to those that have emerged in that month
                                     emerged_firewood = emerged_firewood+1
                             #change the value of arrived firewood to that of firewood that had beetles emerge from it
-                            firewood_dispersal[node][month] = emerged_firewood
+                            firewood_dispersal[node][month] = 1/(1+np.exp(-1*(emerged_firewood-int_load)))
                         #Measures if the there are any months within that campground that have a high enough arrival rate that equal or surpasses the establishment threshold required for establishment
-                        if dict((k, v) for k, v in firewood_dispersal[node].items() if v >= int_load):
-                            next_state[node] = 'I'
+                        for k, v in firewood_dispersal[node].items(): 
+                            
+                            val = random.random()
+                            
+                            if v > val:
+                                print(node)    
+                                next_state[node] = 'I'
             #One city becomes infested each year based on random weighted choice from the population and total travel to the area from all the infested locations
             elif G.nodes[node]['Type'] == 'city_to_city':
                 #select only cities that are susceptible
@@ -339,15 +372,14 @@ from SALib.sample import sobol as sob
 from SALib.analyze import sobol as sob1
 
 #Define the model inputs, which is each parameter that we want to vary, with this we measure the ranges that we believe that each value may be
-problem = {'num_vars': 5,
-           'names': ['halving_distance', 'incidence_live_borers', 'firewood_source','res_slope','int_load'],
-           'bounds': [[100, 250],
-               [0.1,0.2],
-               [0.2, 0.5],[0.001,0.002],[1,15]
-               ]}
+problem = {'num_vars': 9,
+           'names': ['halving_distance', 'incidence_live_borers', 'firewood_source','res_slope','int_load','beta','sigma','E','Q'],
+           'bounds': [[100, 250],[0.1,0.2],[0.2, 0.5],
+                      [0.001,0.002],[1, 15],[2,18],
+                      [1,3.2],[0,1],[-74,74]]}
 
 #generate samples, creates a numpy matrix with the shape N*(2D+2) N=argument supplied D=the number of model inputs
-param_values = sob.sample(problem, )
+param_values = sob.sample(problem, 1)
 
 #run model
 Y = np.zeros([param_values.shape[0]])
@@ -372,8 +404,7 @@ grid_df_count = pd.DataFrame(index= grid_df_counts.index)
 for i, X in enumerate(param_values):
     #print(X[0])
     Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
-    Sim.run(20)
-    
+    Sim.run(1)
     grid_df[i] =  grid_df.index.map(Sim._grid_invas)
     #convert those values to count the number of infested campgrounds for each locations
     grid_df_counts[i+1] = grid_df_counts.index.map(grid_df[i].value_counts())
@@ -390,8 +421,94 @@ for index, row in grid_df_describe.iterrows():
     
 #%%Analyze the outputs for the model
 #Calculate the first, second, and total order indices of the output for the model. 
+from matplotlib import pyplot as plt
+from datetime import datetime
+import matplotlib as mpl
+mpl.rcParams['figure.dpi'] = 300
+
+os.chdir('\..')
+os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results')
+
+
+
+fig, ax = plt.subplots(1,3,figsize=(14,5),gridspec_kw={'width_ratios':[1,3,1]})
+
+
 Si = sob1.analyze(problem, Y)
-print(Si['S1'])
+
+
+
+total_Si, first_Si, second_Si = Si.to_df()
+print(first_Si.index)
+second_Si.index = list(map(''.join, second_Si.index))
+names = {'halving_distance':'Travel distance probability','incidence_live_borers':'probability of live beetles in ash wood',
+         'firewood_source':'Firewood sourced from outside park', 'res_slope':'Per capita reservation rate','int_load':'propagule pressure threshold',
+         'beta':'campground reservation eveness','sigma':'Campground reservation eveness','E':'burning probability of emerald ash borer firewood','Q':'Timing of eab emergence' }
+
+names_2 = {'halving_distanceincidence_live_borers':'Travel distance probability X probability of live beetles in ash wood',
+       'halving_distancefirewood_source':'Travel distance probability X Firewood sourced from outside park',
+       'halving_distanceres_slope':'Travel distance probability X Per capita reservation rate',
+       'halving_distanceint_load':'Travel distance probability X Propagule pressure threshold',
+       'halving_distancebeta':'Travel distance probability X campground reservation eveness',
+       'halving_distancesigma':'Travel distance probability X campground reservation eveness',
+       'halving_distanceE':'Travel distance probability X burning probability of emerald ash borer firewood',
+       'halving_distanceQ':'Travel distance probability X Timing of eab emergence',
+       'incidence_live_borersfirewood_source':'probability of live beetles in ash wood X Firewood sourced from outside park',
+       'incidence_live_borersres_slope':'probability of live beetles in ash wood X Per capita reservation rate',
+       'incidence_live_borersint_load':'probability of live beetles in ash wood X propagule pressure threshold',
+       'incidence_live_borersbeta':'probability of live beetles in ash wood X Campground reservation eveness',
+       'incidence_live_borerssigma':'probability of live beetles in ash wood X Campground reservation eveness',
+       'incidence_live_borersE':'probability of live beetles in ash wood X burning probability of emerald ash borer firewood',
+       'incidence_live_borersQ':'probability of live beetles in ash wood X Timing of eab emergence',
+       'firewood_sourceres_slope':'Firewood sourced from outside park X Per capita reservation rate',
+       'firewood_sourceint_load':'Firewood sourced from outside park X propagule pressure threshold',
+       'firewood_sourcebeta':'Firewood sourced from outside park X Campground reservation eveness',
+       'firewood_sourcesigma':'Firewood sourced from outside park X Campground reservation eveness',
+       'firewood_sourceE':'Firewood sourced from outside park X burning probability of emerald ash borer firewood',
+       'firewood_sourceQ':'Firewood sourced from outside park X Timing of eab emergence',
+       'res_slopeint_load':'Per capita reservation rate X propagule pressure threshold','res_slopebeta':'Per capita reservation rate X Campground reservation eveness',
+       'res_slopesigma':'Per capita reservation rate X Campground reservation eveness', 'res_slopeE':'Per capita reservation rate X burning probability of emerald ash borer firewood', 'res_slopeQ':'Per capita reservation rate X Timing of eab emergence',
+       'int_loadbeta':'Propagule pressure threshold x Campground reservation eveness',
+       'int_loadsigma':'propagule pressure threshold X Campground reservation eveness', 'int_loadE':'propagule pressure threshold X burning probability of emerald ash borer firewood', 'int_loadQ':'propagule pressure threshold X Timing of eab emergence',
+       'betasigma':'campground reservation eveness', 'betaE':'campground reservation eveness X burning probability of emerald ash borer firewood','betaQ':'campground reservation eveness x Timing of eab emergence',
+       'sigmaE':'campground reservation eveness X burning probability of emerald ash borer firewood', 'sigmaQ':'campground reservation eveness X Timing of eab emergence',
+       'EQ':'burning probability of emerald ash borer firewood X Timing of eab emergence'}
+first_Si.rename(names,inplace=True)
+second_Si.rename(names_2,inplace=True)
+total_Si.rename(names,inplace=True)
+
+path = 'global_sen_anal_'+ datetime.today().strftime('%Y-%m-%d'+'.xls')
+
+writer = pd.ExcelWriter(path, engine='xlsxwriter')
+
+first_Si.to_excel(writer, sheet_name='first_Si')
+second_Si.to_excel(writer, sheet_name='second_Si')
+total_Si.to_excel(writer, sheet_name='total_Si')
+
+writer.save()
+
+
+
+
+
+
+
+ax[0].bar(first_Si.index,first_Si['S1'],yerr=first_Si['S1_conf'])
+ax[0].tick_params(rotation=90)
+ax[0].title.set_text('single parameter influence on the model')
+ax[0].set_ylabel('interaction on model')
+
+ax[1].bar(second_Si.index,second_Si['S2'],yerr=second_Si['S2_conf'])
+ax[1].tick_params(rotation=90)
+ax[1].title.set_text('parameter interactions influence on the model')
+
+ax[2].bar(total_Si.index,total_Si['ST'],yerr=total_Si['ST_conf'])
+ax[2].tick_params(rotation=90)
+ax[2].title.set_text('total-order indices')
+
+
+#plt.setp(ax, ylim=(0,1.2))
+
 #%% Classic simulation(Not necessary for the sensitivity analysis)
  ###
 start = time.process_time()
@@ -505,7 +622,7 @@ writer = pd.ExcelWriter(path, engine='xlsxwriter')
 #loop through all the dataframes in the dictionary and adds each dataframe as sheet in the excel file 
 for k,v in total_invas.items():
     for k1,v1 in v.items():
-        for k2,dframe in v1.items():
+        for k2,dframe in v1.items(): 
             #save datafram using sheetnames as k = number of years run, k=measured main sheet name
             dframe.to_excel(writer, sheet_name=(str(k)+str(k2)))
 

@@ -25,6 +25,8 @@ Using this measurement we found a correlation of -.840 and calculated the linear
 import pandas as pd
 import os
 from matplotlib import pyplot as plt
+from decimal import Decimal
+import statsmodels.api as sm
 
 os.chdir('\..')
 os.chdir('Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model')
@@ -103,7 +105,20 @@ slp = model.coef_
 print('y=',str(slp)[2:-2],'x+',str(itrcpt)[1:-1])
 plt.plot(x, slp*x+itrcpt)
 
-#%%Create scatterplot in Seaborn
+#Find confidence interval lower and upper bounds for the slope and y-intercept
+alpha = 0.05 # 95% confidence interval
+#Fit a linear model using Generalized Least Squares
+lr = sm.OLS(y, sm.add_constant(x)).fit()
+conf_interval = lr.conf_int(alpha)
+
+#post the confidence intervals.
+print('                          Confidence intervals \n ================================================================== \n                Slope                               Y-intercept',
+      '\n Lower bound:',conf_interval[1][0],'          ',conf_interval[0][0],
+      '\n Upper bound:',conf_interval[1][1],'           ', conf_interval[0][1])
+
+
+
+#Create scatterplot in Seaborn
 
 import seaborn as sns
 
@@ -112,14 +127,20 @@ sns.set_theme(style = 'ticks', rc=custom_params)
 
 
 fig = plt.figure()
-ax = sns.regplot(x, y, data=df,ci=None, scatter_kws={"color": "teal"}, line_kws={"color": "gray"})
+ax = sns.regplot(data=df, x=x, y=y ,ci=None, scatter_kws={"color": "black"}, line_kws={"color": "dimgray"})
+ax.plot(x, x*conf_interval[1][1] + conf_interval[0][1], linestyle = '--',c='black')
+ax.plot(x, x*conf_interval[1][0] + conf_interval[0][0], linestyle = '--',c='black',label='_nolegend_')
+
 
 x = df['Population']
 y = df['per_camp_reserv']
 
-equ = ('y=' + str(slp)[2:-2] + 'x+' + str(itrcpt)[1:-1])
-plt.legend()
-plt.text(65000,200,(equ))
+slp = '%.1E' % Decimal(round(slp.item(),4))
+itrcpt = round(itrcpt.item(),1)
+
+equ = ('y= ' + str(slp) + 'x + ' + str(itrcpt))
+#plt.legend()
+plt.text(86000,200,(equ))
 
 #ax.plot(x, slp*x+itrcpt)
 
@@ -127,5 +148,5 @@ plt.text(65000,200,(equ))
 ax.set_xlabel("Population size")
 ax.set_ylabel("Campground reservations/year")
 
-
+plt.savefig('Model_results/Campground_res_pop_size.png',dpi = 300)
 

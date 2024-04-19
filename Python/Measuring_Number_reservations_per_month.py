@@ -54,12 +54,29 @@ import seaborn as sns
 plt.figure(figsize = (20,10), dpi = 300)
 ax =sns.barplot(data=df_long,x= 'Month_',y='reservations', hue ='year' )
 plt.show()
+#%%
+
+
+#Create a figure that represents the mean number of reservations
+ax = sns.barplot(data = df_short, x= df_short.index, y = 'mean', color='dimgrey')
+ax.errorbar(x =[0,1,2,3,4,5], y = df_short['mean'], yerr = df_short['ste'],fmt='none',c = 'k',capsize=3)
+ax.set_ylabel('Mean reservations/year',fontsize=12)
+ax.set_xlabel('Month',fontsize=12)
+
+
+plt.savefig('Model_results/Montly_reservations.jpg', dpi = 300)
+
+#%%
+
+df_concat = pd.concat(d.values(),axis = 1 , ignore_index=True).transpose()
 
 
 
 #Create a figure that represents the mean number of reservations
-ax = sns.barplot(data = df_short, x= df_short.index, y = 'mean', color=sns.color_palette('pastel')[0])
-ax.errorbar(x =[0,1,2,3,4,5], y = df_short['mean'], yerr = df_short['ste'],fmt='none',c = 'k')
-ax.set_ylabel('Mean reservations/year')
-ax.set_xlabel('Month')
-plt.savefig('Montly_reservations.jpg', dpi = 300)
+ax = sns.stripplot(data = df_long, x= 'Month_', y = 'reservations', color='dimgrey')
+#ax.errorbar(x =[0,1,2,3,4,5], y = df_short['mean'], yerr = df_short['ste'],fmt='none',c = 'k',capsize=3)
+ax.set_ylabel('Reservations/year',fontsize=12)
+ax.set_xlabel('Month',fontsize=12)
+
+
+plt.savefig('Model_results/Montly_reservations_2.jpg', dpi = 300)

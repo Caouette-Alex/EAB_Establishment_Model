@@ -54,17 +54,17 @@ ax = fig.add_subplot()
 #Plot the data points to show fit of the model
 #ax.plot(df['x'], df['y'],'o', color = 'royalblue', label='data')
 #Plot the proportion of beetles left to emerge(logistic decay function)
-ax.plot(x,sig_y,'royalblue' ,label='Proportion of EAB still present in the firewood (A)')
+ax.plot(x,sig_y,'--',color='dimgray',label='Proportion of EAB still present in the firewood (A)')
 ax.axis(ymin=0, ymax=1.05)
-ax.set_ylabel('Proportion/probability')
-ax.set_xlabel('Julian day') 
+ax.set_ylabel('Proportion/probability',fontsize=12)
+ax.set_xlabel('Julian day',fontsize=12) 
 
 #Plot the proportion of firewood to be burnt before emerald ash borer emergence
-ax.plot(x,lin_y,'-r',label = 'Probability that firewood is burnt before EAB emergence season (B)')
+ax.plot(x,lin_y,':', color='dimgray',label = 'Probability that firewood is burnt before EAB emergence season (B)')
 #Create a second y acis with the 
 #ax2 = ax.twinx()
 #ax2.axis(ymin=0, ymax=1.05)
-ax.plot(x,arrival_prob_array, color ='g' , label = 'Probability of EAB emergence from unburned firewood (A*(1-B))')
+ax.plot(x,arrival_prob_array, color ='dimgray' , label = 'Probability of EAB emergence from unburned firewood (A*(1-B))')
 #ax2.set_ylabel('Probability of EAB emergence Firewood Burnt (B)', fontsize=9)
 
 
@@ -76,10 +76,8 @@ os.chdir('\..')
 os.chdir("Users/alexp/OneDrive - University of New Brunswick/Grad Studies/EAB_Model/Model_results")
 plt.savefig('probability_EAB_emergence_from_unburned_firewood',bbox_inches='tight',dpi=300)
 
-#%%
 #Create the second plot on the figure
-fig = plt.figure(figsize=(9,5))
-ax = fig.add_subplot()
+
 
 #Dictionary of the number of days campgrounds are open for during each month
 d2 = {'May':17,'Jun':30,'Jul':31,'Aug':31, 'Sept':30,'Oct': 9}
@@ -88,7 +86,7 @@ val= 0
 val2= -1
 
 #Replot the proportion of firewood to be burnt before emerald ash borer emergence
-ax.plot(x,arrival_prob_array, color ='g' , label = 'A*B')
+ax.plot(x,arrival_prob_array, color ='dimgray' , label = 'A*B')
 
 # 
 df3 = pd.DataFrame(arrival_prob_array,columns = ['y'])
@@ -116,8 +114,8 @@ ax.bar([135,152,182,213,244,274],align = 'edge', height = df2['height'], width =
 #handles3 = [plt.Rectangle((0,0),1,1, color=colors[label]) for label in labels3]
 #lgd = fig.legend(lines , labels , bbox_to_anchor = (0.925,1.2), ncol = 1)
 #ax3.legend(handles, labels, loc = 'right')
-ax.set_ylabel('Probability')
-ax.set_xlabel('Julian Date')
+ax.set_ylabel('Probability',fontsize=12)
+ax.set_xlabel('Julian Date',fontsize=12)
 #plt.legend(loc='best')
 d={'May':140,'June':163,'July':195, 'August':223, 'September': 250, 'October':272}
 for k,v in d.items():

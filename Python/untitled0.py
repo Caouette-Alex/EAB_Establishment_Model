@@ -1,29 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jan 23 09:11:13 2023
+Created on Mon May  1 09:21:28 2023
 
 @author: alexp
 """
-from matplotlib import pyplot as plt
 import numpy as np
-from scipy.stats import norm
-import statistics
-import seaborn as sns
-
-cutoff = [3,5,7]
-test = [0.2,0.5,1]
-for cutoff in cutoff:
-    pieces = [1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5,8,8.5,9,9.5,10]
-    plt.plot(pieces,(([0.5*(1-np.tanh(0.5*(i-cutoff))) for i in pieces])))
-    plt.xlabel('firewood arrival')
-    plt.ylabel('probability of establishment')
-    plt.show()
-
-
-
-#month= [109, 619, 1521, 1583, 559, 62]
-#mean = statistics.mean(month)
-#sd = statistics.stdev(month)
-#x = [5,6,7,8,9,10]
-#plt.plot(x,norm.pdf(month,mean,sd))
-#sns.distplot(x=x, y=month)
+import random
+import matplotlib.pyplot as plt
+from scipy.special import gamma as gamma
+for i in range(100):
+    alpha=7.483
+    beta=random.uniform(2,18)
+    beta = 18
+    sigma=random.uniform(1,3.2)
+    #sigma = 3.2
+    reservations_month = {}
+    months = {'May':5,'June':6,'July':7,'August':8,'September':9,'October':10}
+    x=np.linspace(5,10,6)
+    y=(beta/(2*sigma*gamma(1/beta)))*np.exp(-(abs((x-alpha)/sigma))**beta)*4456
+    plt.plot([0,1,2,3,4,5],y)
