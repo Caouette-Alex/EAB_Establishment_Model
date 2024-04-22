@@ -274,11 +274,12 @@ def state_transition(G, current_state):
             if node in d.keys():
                 #randomly distribute pieces of firewood based on the weights of reservation months. campgrounds are separated by month, weights= number of res, made per year, k= number of pieces of firewood that show up in a year
                 firewood_dispersal[node] = (random.choices(list(reservations_month.keys()),weights=list(reservations_month.values()), k=d[node]))
-    
+                print(firewood_dispersal)
     from collections import Counter
     #Count the total number of pieces of firewood distributed to each month
     for k,v in firewood_dispersal.items():
         firewood_dispersal[k] = dict(Counter(v))
+ 
 
     
     ###
@@ -330,17 +331,18 @@ def state_transition(G, current_state):
                             for piece_firewood in range(firewood_load):
                                 #generate a random number between 0-1
                                 rand=random.random()
-                                # see if the random number is less than the supply rate of emerged firewood
+                                # see if the random number is less than the supply rate of transported firewood
+                                # This represents if EAB successfully from that firewood based on the month that it was introduced 
                                 if rand < sup_rate_EAB[month]:
                                     #add that firewood to those that have emerged in that month
                                     emerged_firewood = emerged_firewood+1
-                            #change the value of arrived firewood to that of firewood that had beetles emerge from it
+                            #change the value of arrived firewood to represent a logistic relationship of probability of a location becoming established based on arrival rate
                             firewood_dispersal[node][month] = 1/(1+np.exp(-1*(emerged_firewood-int_load)))
                         #Measures if the there are any months within that campground that have a high enough arrival rate that equal or surpasses the establishment threshold required for establishment
                         for k, v in firewood_dispersal[node].items(): 
                             
                             val = random.random()
-                            
+                            print(k,v), print (val)
                             if v > val:
                                 #print(node)    
                                 next_state[node] = 'I'
@@ -379,7 +381,7 @@ problem = {'num_vars': 9,
                       [1,3.2],[0,1],[-74,74]]}
 
 #generate samples, creates a numpy matrix with the shape N*(2D+2) N=argument supplied D=the number of model inputs
-param_values = sob.sample(problem, 4)
+param_values = sob.sample(problem, 1)
 
 #run model
 Y = np.zeros([param_values.shape[0]])
@@ -390,6 +392,7 @@ for letter in list(map(chr,range(65,79))):
          grid_list.append(letter+'-'+str(num+1))
 
 grid_df = pd.DataFrame(index=G.nodes)
+inf_camp  = {}
 
 grid_df_counts = pd.DataFrame(index=grid_list) 
 grid_df_counts['total_counts'] = grid_df_counts.index.map(edgelist_df['Grid_ID'].value_counts()/28)
@@ -399,12 +402,14 @@ grid_df_counts = grid_df_counts[grid_df_counts['total_counts'].notna()]
 
 grid_df_count = pd.DataFrame(index= grid_df_counts.index)
 
+
 #Iterate through the values of each row in the parameter values where i is the row number and X is the array of parameter values
 #This runs the simulation once for each set of parameter counts and outputs a dataframe of the proportion of locations that are established based on the 
 for i, X in enumerate(param_values):
-    print(i,X[0])
+    print(i)
     Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
     Sim.run(20)
+    inf_camp[i] =  Sim._inf_camp
     grid_df[i] =  grid_df.index.map(Sim._grid_invas)
     #convert those values to count the number of infested campgrounds for each locations
     grid_df_counts[i+1] = grid_df_counts.index.map(grid_df[i].value_counts())

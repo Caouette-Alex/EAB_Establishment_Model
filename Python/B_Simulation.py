@@ -75,8 +75,8 @@ class Simulation:
         #self._intro_time = pd.DataFrame(index=self.G)
         
         #Get spatial characteristics of the model
-        self._pos = nx.get_node_attributes(G, 'pos')
-        self._grid_id = nx.get_node_attributes(G, 'Grid_ID')
+        #self._pos = nx.get_node_attributes(G, 'pos')
+        #self._grid_id = nx.get_node_attributes(G, 'Grid_ID')
         
     def _append_state(self, state):
         self._states.append(state)
@@ -105,33 +105,37 @@ class Simulation:
     #iterate through a single year. in this case we go through the class state transition once that's found in the file 3-Creation_of_Network_graph.py
     def _step(self):
     
-        # We're choosing to use the node attributes as the source of truth.
-        # This allows the user to manually perturb the network in between steps.
+        # We're choosing to use the node attributes as the indicator of changes in states from susceptible 'S' and infected 'I'
+        # We perturb the network in between steps using the state transition class that selects new infested locations based on introcution model 
         
         #state of all the nodes at that step
         state = nx.get_node_attributes(self.G, 'state')
         
         
         state_in_trans = self._state_transition(self.G, state)
+        
         #state_in_trans[0] represents a dictionary of campgrounds that are infested
         new_state = state_in_trans[0]
-        
+       
         self._inf_camp.append(state_in_trans)
-        
-        
-
-                
         
         #This creates a dictionary to show what time period each k(node name) changes v(state) to infested 
         #For those that are already infested at step 0(Edmundston, Moncton,Fredericton, Halifax, Oromocto)
-        for k, v in state.items():
+        #iterate through all the nodes. If the node becomes infested at this step then record that location as infested and track the time point that it became infested.
+        
+        #for k, v in state.items():
             #Create a dictionary that represents the propagule pressure of each piece of firewood arriving state_in_trans[1] gives the number of pieces of firewood showing up by campground by month
-            self._prog_pres[len(self._states) - 1] = state_in_trans[1]
-            if v == 'I':
-                if k not in self._time_invas:
-                    self._time_invas[k] = len(self._states)
-                    self._prob_invas[k] = 1
-                    
+           # self._prog_pres[len(self._states) - 1] = state_in_trans[1]
+            #If state is infected
+            #if v == 'I':
+                # node name or campground not in time to invasion dictionary add the time period where the location became infested
+                #if k not in self._time_invas:
+                    #self._time_invas[k] = len(self._states)
+                    #Add a binary value to represent if a location becomes invaded
+                    #self._prob_invas[k] = 1
+        
+                
+        
         for k, v in new_state.items():
             
             if k not in self._time_invas:
@@ -179,7 +183,7 @@ class Simulation:
             return self._states[step]
         except IndexError:
             raise IndexError('Simulation step %i out of range' % step)
-
+#%% Remove
     def draw(self, step=-1, labels=None, **kwargs):
         '''
         Use networkx.draw to draw a simulation state with nodes colored by
@@ -279,7 +283,7 @@ class Simulation:
         ani = animation.FuncAnimation(fig, animate, frames=len(self._states) - 1, interval=1000, repeat=True)
 
         plt.show()
-
+#%% REMOVE
         
     def plot(self, min_step=None, max_step=None, labels=None, **kwargs):
         '''
