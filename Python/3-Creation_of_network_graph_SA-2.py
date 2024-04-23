@@ -274,7 +274,7 @@ def state_transition(G, current_state):
             if node in d.keys():
                 #randomly distribute pieces of firewood based on the weights of reservation months. campgrounds are separated by month, weights= number of res, made per year, k= number of pieces of firewood that show up in a year
                 firewood_dispersal[node] = (random.choices(list(reservations_month.keys()),weights=list(reservations_month.values()), k=d[node]))
-                print(firewood_dispersal)
+                
     from collections import Counter
     #Count the total number of pieces of firewood distributed to each month
     for k,v in firewood_dispersal.items():
@@ -342,7 +342,6 @@ def state_transition(G, current_state):
                         for k, v in firewood_dispersal[node].items(): 
                             
                             val = random.random()
-                            print(k,v), print (val)
                             if v > val:
                                 #print(node)    
                                 next_state[node] = 'I'
@@ -392,7 +391,7 @@ for letter in list(map(chr,range(65,79))):
          grid_list.append(letter+'-'+str(num+1))
 
 grid_df = pd.DataFrame(index=G.nodes)
-inf_camp  = {}
+
 
 grid_df_counts = pd.DataFrame(index=grid_list) 
 grid_df_counts['total_counts'] = grid_df_counts.index.map(edgelist_df['Grid_ID'].value_counts()/28)
@@ -406,10 +405,9 @@ grid_df_count = pd.DataFrame(index= grid_df_counts.index)
 #Iterate through the values of each row in the parameter values where i is the row number and X is the array of parameter values
 #This runs the simulation once for each set of parameter counts and outputs a dataframe of the proportion of locations that are established based on the 
 for i, X in enumerate(param_values):
-    print(i)
     Sim = Simulation(G, initial_state, state_transition, name='EAB network model')
     Sim.run(20)
-    inf_camp[i] =  Sim._inf_camp
+    #print(len(Sim._states)
     grid_df[i] =  grid_df.index.map(Sim._grid_invas)
     #convert those values to count the number of infested campgrounds for each locations
     grid_df_counts[i+1] = grid_df_counts.index.map(grid_df[i].value_counts())
@@ -424,7 +422,7 @@ for index, row in grid_df_describe.iterrows():
     
     Y[index]=row['mean']
     
-#%%Analyze the outputs for the model
+ #%%Analyze the outputs for the model
 #Calculate the first, second, and total order indices of the output for the model. 
 from matplotlib import pyplot as plt
 from datetime import datetime
@@ -514,6 +512,8 @@ ax[2].title.set_text('total-order indices')
 
 #plt.setp(ax, ylim=(0,1.2))
 
+
+
 #%% Classic simulation(Not necessary for the sensitivity analysis)
  ###
 start = time.process_time()
@@ -533,6 +533,8 @@ num_of_years = [20]
 # The dictionary has the following structure k1:k2:k3:v3 where k1 = Introduced load(propagule pressure), k2 = is the number of years the simulation runs for, k3 = are the names of dataframes
 # Invasion probability(campground infested or not), Invas_time(time point that the campground became infested), Prop_infect(proportion of campgrounds becoming infested based on the year of infestation), descriptive stats of both invas_prob and invas_year
 ###
+
+prog_pres = [1]
 
 total_invas={}
 grid_list = []
